@@ -1,35 +1,51 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>जयमाला स्टेज बिजनेस</title>
+    <title>Gagan Jaimala | जयमाला स्टेज बिजनेस</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <header>
-        <h1>हमारे जयमाला स्टेज</h1>
+        <h1 onclick="location.reload()" style="cursor:pointer">Gagan Jaimala</h1>
         <button class="cart-button" id="open-cart-btn">🛒 कार्ट (<span id="cart-count">0</span>)</button>
     </header>
 
     <div class="container">
-        <h2>हमारे प्रोडक्ट्स</h2>
-        <div id="product-grid">
-            <!-- Products will be loaded here by JavaScript -->
+        
+        <div id="category-section">
+            <h2 class="section-title">कैटेगरी चुनें</h2>
+            <div class="category-grid">
+                <div class="cat-card" onclick="loadProductsByCategory('Jaimala Stage')">Jaimala Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Hydraulic jaimala')">Hydraulic Jaimala</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Mandap stage')">Mandap Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Haldi stage')">Haldi Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Mehandi stage')">Mehandi Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Flower gate')">Flower Gate</div>
+            </div>
         </div>
+
+        <div id="product-section" style="display:none;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="current-category-title" style="margin:0;">प्रोडक्ट्स</h2>
+                <button class="btn-back" onclick="showCategories()">← वापस</button>
+            </div>
+            <div id="product-grid">
+                </div>
+        </div>
+
     </div>
 
-    <!-- Cart Modal -->
     <div id="cart-modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <h2>आपका कार्ट</h2>
             <div id="cart-items-list"></div>
             <hr>
-            <h3>ऑर्डर करने के लिए अपनी जानकारी भरें</h3>
+            <h3>ऑर्डर करने के लिए जानकारी भरें</h3>
             <form id="checkout-form">
                 <div class="form-group">
                     <label for="customer-name">नाम:</label>
@@ -43,32 +59,57 @@
                     <label for="customer-phone">फ़ोन नंबर:</label>
                     <input type="tel" id="customer-phone" required>
                 </div>
-                <button type="submit" id="checkout-btn">ऑर्डर करें</button>
+                <button type="submit" id="checkout-btn">ऑर्डर कन्फर्म करें</button>
             </form>
         </div>
     </div>
 
     <script>
         // ------------------ SUPABASE SETUP ------------------
-        // STEP 1: अपनी Supabase डिटेल्स यहाँ डालें
-        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; // आपका Supabase URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; // आपकी Supabase Key
+        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         // ----------------------------------------------------
 
         const productGrid = document.getElementById('product-grid');
         const cartCount = document.getElementById('cart-count');
+        const categorySection = document.getElementById('category-section');
+        const productSection = document.getElementById('product-section');
         let cart = [];
 
-        // Products को Supabase से लोड करें
-        async function loadProducts() {
-            const { data, error } = await supabaseClient.from('products').select('*');
+        // Function: Wapas Category dikhane ke liye
+        function showCategories() {
+            categorySection.style.display = 'block';
+            productSection.style.display = 'none';
+        }
+
+        // Function: Products ko Category ke hisaab se filter karke load karna
+        async function loadProductsByCategory(categoryName) {
+            // UI Toggle
+            categorySection.style.display = 'none';
+            productSection.style.display = 'block';
+            document.getElementById('current-category-title').innerText = categoryName;
+            
+            productGrid.innerHTML = '<p style="text-align:center;">लोड हो रहा है... कृपया प्रतीक्षा करें...</p>';
+
+            // Supabase query with filter
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .eq('category', categoryName); // Dhyaan rahe Admin panel se 'category' text match hona chahiye
+
             if (error) {
-                console.error('Error fetching products:', error);
+                console.error('Error:', error);
+                productGrid.innerHTML = '<p>डेटा लोड करने में समस्या हुई।</p>';
                 return;
             }
             
             productGrid.innerHTML = '';
+            if (data.length === 0) {
+                productGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">इस कैटेगरी में अभी कोई प्रोडक्ट नहीं है।</p>';
+                return;
+            }
+
             data.forEach(product => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
@@ -84,14 +125,14 @@
             });
         }
 
-        // कार्ट में प्रोडक्ट जोड़ें
+        // --- Baki ka Cart Logic (Jo pehle tha) ---
         function addToCart(id, name, price) {
             const existingProduct = cart.find(item => item.id === id);
             if (existingProduct) {
-                alert('यह प्रोडक्ट पहले से कार्ट में है।');
+                alert('यह पहले से कार्ट में है।');
             } else {
-                cart.push({ id, name, price, quantity: 1 });
-                alert(`'${name}' कार्ट में जोड़ दिया गया है।`);
+                cart.push({ id, name, price });
+                alert(`'${name}' कार्ट में जोड़ दिया गया।`);
             }
             updateCartUI();
         }
@@ -99,11 +140,7 @@
         function updateCartUI() {
             cartCount.innerText = cart.length;
             const cartItemsList = document.getElementById('cart-items-list');
-            cartItemsList.innerHTML = '';
-            if (cart.length === 0) {
-                cartItemsList.innerHTML = '<p>आपका कार्ट खाली है।</p>';
-                return;
-            }
+            cartItemsList.innerHTML = cart.length === 0 ? '<p>कार्ट खाली है।</p>' : '';
             cart.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
@@ -112,79 +149,42 @@
             });
         }
 
-        // Cart Modal Logic
         const modal = document.getElementById('cart-modal');
         const openCartBtn = document.getElementById('open-cart-btn');
         const closeBtn = document.querySelector('.close-button');
         openCartBtn.onclick = () => { modal.style.display = 'block'; updateCartUI(); }
         closeBtn.onclick = () => { modal.style.display = 'none'; }
-        window.onclick = (event) => {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        }
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
 
-        // Checkout Logic
+        // Checkout logic (Web3Forms) - Wahi rahega
         const checkoutForm = document.getElementById('checkout-form');
         checkoutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (cart.length === 0) {
-                alert('ऑर्डर करने के लिए कृपया कार्ट में कुछ प्रोडक्ट्स जोड़ें।');
-                return;
-            }
+            if (cart.length === 0) return alert('कार्ट खाली है!');
 
             const customerName = document.getElementById('customer-name').value;
             const customerEmail = document.getElementById('customer-email').value;
             const customerPhone = document.getElementById('customer-phone').value;
 
-            const orderDetails = {
-                customer: { name: customerName, email: customerEmail, phone: customerPhone },
-                items: cart,
-                total: cart.reduce((sum, item) => sum + item.price, 0)
-            };
-            
-            // ईमेल भेजने का आसान तरीका (Web3Forms)
-            const emailMessage = `
-नया ऑर्डर आया है!
-
-ग्राहक का नाम: ${customerName}
-ईमेल: ${customerEmail}
-फ़ोन नंबर: ${customerPhone}
-
-ऑर्डर किए गए प्रोडक्ट्स:
-${cart.map(item => `- ${item.name} (₹${item.price.toLocaleString()})`).join('\n')}
-
-कुल बिल: ₹${orderDetails.total.toLocaleString()}
-            `;
+            const emailMessage = `नया ऑर्डर!\nनाम: ${customerName}\nफ़ोन: ${customerPhone}\nप्रोडक्ट्स: ${cart.map(i => i.name).join(', ')}`;
 
             try {
                 const response = await fetch("https://api.web3forms.com/submit", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        access_key: "06ced9fc-e3ab-4485-a2c8-3808a3d63f8f", // <-- Web3Forms से मिली हुई Key यहाँ डालें
-                        subject: "नया जयमाला स्टेज ऑर्डर!",
+                        access_key: "06ced9fc-e3ab-4485-a2c8-3808a3d63f8f",
+                        subject: "नया जयमाला ऑर्डर!",
                         message: emailMessage,
                     }),
                 });
                 
                 if (response.ok) {
-                    alert('आपका ऑर्डर सफलतापूर्वक भेज दिया गया है! हम आपसे जल्द ही संपर्क करेंगे।');
-                    cart = [];
-                    updateCartUI();
-                    modal.style.display = 'none';
-                    checkoutForm.reset();
-                } else {
-                    alert('ऑर्डर भेजने में कोई समस्या हुई।');
+                    alert('ऑर्डर भेज दिया गया!');
+                    cart = []; updateCartUI(); modal.style.display = 'none'; checkoutForm.reset();
                 }
-            } catch (err) {
-                console.error(err);
-                alert('कुछ तकनीकी समस्या हुई है।');
-            }
+            } catch (err) { alert('टेक्निकल एरर!'); }
         });
-
-        // Initial Load
-        loadProducts();
     </script>
 </body>
 </html>
