@@ -1,166 +1,163 @@
-<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>एडमिन पैनल</title>
+    <title>Gagan Jaimala - एडमिन पैनल</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body style="background-color: #f4f4f9;">
+
     <div class="admin-container">
-        <h2>एडमिन पैनल - प्रोडक्ट्स मैनेज करें</h2>
+        <header style="background: #5D331D; color: white; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+            <h2>Gagan Jaimala Admin</h2>
+        </header>
         
-        <form id="add-product-form">
-            <h3>नया प्रोडक्ट जोड़ें</h3>
+        <form id="add-product-form" style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <h3 style="color: #5D331D;">नया प्रोडक्ट जोड़ें</h3>
+            
             <div class="form-group">
-                <label for="product-name">प्रोडक्ट का नाम:</label>
-                <input type="text" id="product-name" required>
+                <label>प्रोडक्ट का नाम:</label>
+                <input type="text" id="product-name" placeholder="जैसे: Royal Haldi Setup" required>
             </div>
+
             <div class="form-group">
-                <label for="product-price">कीमत (₹):</label>
-                <input type="number" id="product-price" required>
+                <label>कैटेगरी चुनें (सबसे ज़रूरी):</label>
+                <select id="product-category" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;" required>
+                    <option value="">-- कैटेगरी चुनें --</option>
+                    <option value="Jaimala Stage">Jaimala Stage</option>
+                    <option value="Hydraulic jaimala">Hydraulic Jaimala</option>
+                    <option value="Mandap stage">Mandap Stage</option>
+                    <option value="Haldi stage">Haldi Stage</option>
+                    <option value="Mehandi stage">Mehandi Stage</option>
+                    <option value="Flower gate">Flower Gate</option>
+                </select>
             </div>
+
             <div class="form-group">
-                <label for="product-media">फोटो/वीडियो फाइल:</label>
-                <input type="file" id="product-media" accept="image/*,video/*" required>
+                <label>कीमत (₹):</label>
+                <input type="number" id="product-price" placeholder="15000" required>
             </div>
-            <button type="button" id="add-product-btn" class="btn">प्रोडक्ट जोड़ें</button>
+
+            <div class="form-group">
+                <label>फोटो चुनें:</label>
+                <input type="file" id="product-media" accept="image/*" required>
+            </div>
+
+            <button type="button" id="add-product-btn" class="btn" style="background: #C5A059; font-weight: bold;">प्रोडक्ट अपलोड करें</button>
         </form>
 
-        <hr style="margin: 2rem 0;">
+        <hr style="margin: 2rem 0; border: 0; border-top: 2px solid #ddd;">
 
         <div id="admin-product-list-section">
-            <h3>मौजूदा प्रोडक्ट्स</h3>
+            <h3 style="color: #5D331D;">मौजूदा प्रोडक्ट्स की लिस्ट</h3>
             <div id="admin-product-list">
-                <!-- Product list will be loaded here -->
-            </div>
+                </div>
         </div>
     </div>
 
     <script>
-        // ------------------ SUPABASE SETUP ------------------
-        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; // आपका Supabase URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; // आपकी Supabase Key
+        // --- SUPABASE SETUP ---
+        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // ----------------------------------------------------
 
         const addProductBtn = document.getElementById('add-product-btn');
         const adminProductList = document.getElementById('admin-product-list');
 
-        // एडमिन पेज को पासवर्ड से सुरक्षित करें (यह एक बेसिक तरीका है)
+        // Password Check
         function checkPassword() {
-            const password = prompt("एडमिन पैनल के लिए पासवर्ड डालें:", "");
-            if (password !== "your_secret_password") { // अपना खुद का पासवर्ड यहाँ सेट करें
+            const password = prompt("एडमिन पासवर्ड डालें:", "");
+            if (password !== "prince123") { // Password yahan badal sakte ho
                 alert("गलत पासवर्ड!");
-                document.body.innerHTML = '<h1>Access Denied</h1>';
+                document.body.innerHTML = '<h1 style="text-align:center; margin-top:50px;">Access Denied</h1>';
                 return false;
             }
             return true;
         }
 
-        // प्रोडक्ट्स की लिस्ट लोड करें
+        // Load Products
         async function loadAdminProducts() {
-            const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
-            if (error) {
-                console.error('Error fetching products:', error);
-                return;
-            }
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) return console.error(error);
             
             adminProductList.innerHTML = '';
             data.forEach(product => {
                 const item = document.createElement('div');
                 item.className = 'admin-product-item';
+                item.style = "background:white; padding:10px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; border-left: 5px solid #C5A059;";
                 item.innerHTML = `
-                    <span>${product.name} - ₹${product.price}</span>
-                    <button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button>
+                    <div>
+                        <strong>${product.name}</strong> <br>
+                        <small style="color:gray;">कैटेगरी: ${product.category} | ₹${product.price}</small>
+                    </div>
+                    <button class="delete-btn" onclick="deleteProduct(${product.id})" style="background:#ff4d4d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">हटाएं</button>
                 `;
                 adminProductList.appendChild(item);
             });
         }
 
-        // नया प्रोडक्ट जोड़ें
+        // Add Product Logic
         addProductBtn.addEventListener('click', async () => {
-            try {
             const name = document.getElementById('product-name').value;
+            const category = document.getElementById('product-category').value;
             const price = document.getElementById('product-price').value;
             const mediaFile = document.getElementById('product-media').files[0];
 
-            if (!name || !price || !mediaFile) {
-                alert('कृपया सभी फील्ड भरें।');
+            if (!name || !category || !price || !mediaFile) {
+                alert('भाई, सारी जानकारी भरो!');
                 return;
             }
 
-            // बटन को डिसेबल करें और टेक्स्ट बदलें ताकि पता चले कि काम हो रहा है
             addProductBtn.disabled = true;
-            addProductBtn.innerText = 'अपलोड हो रहा है... कृपया प्रतीक्षा करें...';
+            addProductBtn.innerText = 'अपलोड हो रहा है...';
 
-            // 1. मीडिया फाइल को Supabase Storage पर अपलोड करें
+            // 1. Storage Upload
             const fileName = `${Date.now()}_${mediaFile.name}`;
             const { error: uploadError } = await supabaseClient.storage
-                .from('product-media') // यह वही बकेट नाम है जो आपने बनाया था
+                .from('product-media')
                 .upload(fileName, mediaFile);
 
             if (uploadError) {
-                console.error('Upload Error:', uploadError);
-                alert('फाइल अपलोड करने में त्रुटि हुई। (Error: ' + uploadError.message + ')');
+                alert('Upload Error: ' + uploadError.message);
                 addProductBtn.disabled = false;
-                addProductBtn.innerText = 'प्रोडक्ट जोड़ें';
                 return;
             }
 
-            // 2. फाइल का पब्लिक URL प्राप्त करें
+            // 2. Get Public URL
             const { data: urlData } = supabaseClient.storage
                 .from('product-media')
                 .getPublicUrl(fileName);
-
             const media_url = urlData.publicUrl;
 
-            // 3. प्रोडक्ट की जानकारी को 'products' टेबल में डालें
+            // 3. Database Insert (Including Category)
             const { error: insertError } = await supabaseClient
                 .from('products')
-                .insert([{ name, price, media_url }]);
+                .insert([{ name, category, price, media_url }]);
 
             if (insertError) {
-                console.error('Insert Error:', insertError);
-                alert('प्रोडक्ट जोड़ने में त्रुटि हुई। (Error: ' + insertError.message + ')');
-                addProductBtn.disabled = false;
-                addProductBtn.innerText = 'प्रोडक्ट जोड़ें';
+                alert('Insert Error: ' + insertError.message);
             } else {
-                alert('प्रोडक्ट सफलतापूर्वक जोड़ा गया!');
+                alert('प्रोडक्ट सेट हो गया!');
                 document.getElementById('add-product-form').reset();
-                loadAdminProducts(); // लिस्ट को रिफ्रेश करें
-                addProductBtn.disabled = false;
-                addProductBtn.innerText = 'प्रोडक्ट जोड़ें';
+                loadAdminProducts();
             }
-            } catch (err) {
-                console.error('Unexpected error:', err);
-                alert('कुछ तकनीकी समस्या हुई है: ' + err.message);
-                addProductBtn.disabled = false;
-                addProductBtn.innerText = 'प्रोडक्ट जोड़ें';
-            }
+            addProductBtn.disabled = false;
+            addProductBtn.innerText = 'प्रोडक्ट अपलोड करें';
         });
 
-        // प्रोडक्ट डिलीट करें
         async function deleteProduct(id) {
-            if (!confirm('क्या आप वाकई इस प्रोडक्ट को हटाना चाहते हैं?')) return;
-
+            if (!confirm('क्या आप इसे हटाना चाहते हैं?')) return;
             const { error } = await supabaseClient.from('products').delete().eq('id', id);
-            if (error) {
-                console.error('Delete Error:', error);
-                alert('प्रोडक्ट हटाने में त्रुटि हुई।');
-            } else {
-                alert('प्रोडक्ट हटा दिया गया है।');
-                loadAdminProducts(); // लिस्ट को रिफ्रेश करें
-            }
+            if (!error) loadAdminProducts();
         }
 
-        // पेज लोड होने पर पासवर्ड पूछें और प्रोडक्ट्स लोड करें
-        if (checkPassword()) {
-
-            loadAdminProducts();
-        }
+        if (checkPassword()) loadAdminProducts();
     </script>
 </body>
 </html>
