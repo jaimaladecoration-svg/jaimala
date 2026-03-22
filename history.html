@@ -2,69 +2,88 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders | Gagan Jaimala</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #fffcf5; margin: 0; padding: 0; }
+        header { background: #5d331d; color: white; padding: 15px; text-align: center; }
+        .order-card { 
+            background: white; 
+            border-left: 5px solid #5d331d; 
+            padding: 15px; 
+            margin: 15px auto; 
+            width: 90%; 
+            max-width: 500px; 
+            border-radius: 8px; 
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1); 
+        }
+        .order-id { font-size: 0.8em; color: #888; margin-bottom: 5px; }
+        .items { font-weight: bold; color: #333; margin: 10px 0; }
+        .customer { color: #5d331d; font-size: 0.9em; }
+        .date { font-size: 0.75em; color: gray; margin-top: 10px; }
+        #status-msg { text-align: center; margin-top: 20px; font-weight: bold; }
+    </style>
 </head>
-<body style="background-color: #fffcf5;">
+<body>
 
-    <header style="background: #5d331d; color: white; padding: 15px; text-align: center;">
+    <header>
         <h1 onclick="window.location.href='index.html'" style="cursor:pointer; margin:0;">Gagan Jaimala</h1>
-        <button onclick="window.location.href='categories.html'" style="margin-top:10px; cursor:pointer;">Wapas Jayein</button>
+        <button onclick="window.location.href='categories.html'" style="margin-top:10px; cursor:pointer; padding: 5px 15px;">Wapas Jayein</button>
     </header>
 
-    <div class="container" style="max-width: 600px; margin: 20px auto; padding: 10px;">
-        <h2 style="text-align: center; color: #5d331d;">Mera Order History</h2>
-        <div id="order-list" style="margin-top: 20px; text-align: center;">Orders load ho rahe hain...</div>
-    </div>
+    <h2 style="text-align: center; color: #5d331d; margin-top: 20px;">Mera Order History</h2>
+    <div id="status-msg">Orders load ho rahe hain...</div>
+    <div id="order-list"></div>
 
     <script>
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function loadHistory() {
+        async function fetchOrders() {
             const list = document.getElementById('order-list');
-            
+            const status = document.getElementById('status-msg');
+
             try {
-                // 1. User check
-                const { data: { user }, error: authError } = await supabase.auth.getUser();
-                
-                if (authError || !user) {
-                    list.innerHTML = "Pehle <a href='auth.html'>Login</a> karein.";
+                // 1. Check Login User
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    status.innerHTML = "Pehle <a href='index.html'>Login</a> karein.";
                     return;
                 }
 
-                // 2. Fetch Orders
+                // 2. Fetch from Database (Using your actual column names)
                 const { data, error } = await supabase
                     .from('orders')
-                    .select('*')
+                    .select('id, created_at, customer_name, items')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 
-                if (error) {
-                    list.innerHTML = "Galti: " + error.message;
-                    console.error(error);
-                    return;
-                }
+                if (error) throw error;
 
-                if (data && data.length > 0) {
-                    list.innerHTML = data.map(o => `
-                        <div style="border: 1px solid #5d331d; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: white; text-align: left; box-shadow: 2px 2px 10px rgba(0,0,0,0.1);">
-                            <p><strong>Booking ID:</strong> ${o.booking_id}</p>
-                            <p><strong>Items:</strong> ${o.items}</p>
-                            <p><strong>Total:</strong> ₹${o.total_price}</p>
-                            <p style="font-size: 0.8em; color: gray;"><strong>Date:</strong> ${new Date(o.created_at).toLocaleString()}</p>
+                if (data.length === 0) {
+                    status.innerHTML = "Abhi tak koi order nahi mila.";
+                } else {
+                    status.style.display = 'none'; // Hide loading message
+                    list.innerHTML = data.map(order => `
+                        <div class="order-card">
+                            <div class="order-id">Order ID: #${order.id}</div>
+                            <div class="customer">Customer: ${order.customer_name}</div>
+                            <div class="items">Items: ${order.items}</div>
+                            <div class="date">Date: ${new Date(order.created_at).toLocaleString('hi-IN')}</div>
                         </div>
                     `).join('');
-                } else {
-                    list.innerHTML = "<p>Abhi tak koi order nahi mila.</p>";
                 }
             } catch (err) {
-                list.innerHTML = "Kuch galat hua: " + err.message;
+                status.innerHTML = "Error: " + err.message;
+                status.style.color = "red";
+                console.error(err);
             }
         }
-        loadHistory();
+
+        fetchOrders();
     </script>
 </body>
 </html>
