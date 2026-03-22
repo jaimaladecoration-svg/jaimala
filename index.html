@@ -3,188 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gagan Jaimala | जयमाला स्टेज बिजनेस</title>
+    <title>Gagan Jaimala | Welcome</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .slideshow-container {
+            max-width: 100%; position: relative; margin: 20px auto; height: 350px;
+            overflow: hidden; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            background: #f0f0f0;
+        }
+        .mySlides { display: none; width: 100%; height: 100%; animation: fade 1.5s; }
+        .mySlides img { width: 100%; height: 100%; object-fit: cover; }
+        @keyframes fade { from {opacity: .4} to {opacity: 1} }
+        .hero-content { text-align: center; padding: 40px 20px; }
+        .hero-content h2 { color: #5D331D; font-size: 2.5rem; margin-bottom: 10px; }
+        .booking-now-btn {
+            background: #5D331D; color: white; padding: 18px 40px; font-size: 1.3rem;
+            border: none; border-radius: 50px; cursor: pointer; font-weight: bold;
+            text-decoration: none; display: inline-block; transition: 0.3s;
+        }
+        .booking-now-btn:hover { background: #C5A059; transform: scale(1.05); }
+    </style>
 </head>
 <body>
-
-    <header>
-        <h1 onclick="location.reload()" style="cursor:pointer">Gagan Jaimala</h1>
-        <button class="cart-button" id="open-cart-btn">🛒 कार्ट (<span id="cart-count">0</span>)</button>
-    </header>
-
+    <header><h1>Gagan Jaimala</h1></header>
     <div class="container">
-        
-        <div id="category-section">
-            <h2 class="section-title">कैटेगरी चुनें</h2>
-            <div class="category-grid">
-                <div class="cat-card" onclick="loadProductsByCategory('Jaimala Stage')">Jaimala Stage</div>
-                <div class="cat-card" onclick="loadProductsByCategory('Hydraulic jaimala')">Hydraulic Jaimala</div>
-                <div class="cat-card" onclick="loadProductsByCategory('Mandap stage')">Mandap Stage</div>
-                <div class="cat-card" onclick="loadProductsByCategory('Haldi stage')">Haldi Stage</div>
-                <div class="cat-card" onclick="loadProductsByCategory('Mehandi stage')">Mehandi Stage</div>
-                <div class="cat-card" onclick="loadProductsByCategory('Flower gate')">Flower Gate</div>
-            </div>
+        <div class="slideshow-container" id="slideshow-box">
+            <p style="text-align:center; padding-top:150px;">Photos लोड हो रही हैं...</p>
         </div>
-
-        <div id="product-section" style="display:none;">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 id="current-category-title" style="margin:0;">प्रोडक्ट्स</h2>
-                <button class="btn-back" onclick="showCategories()">← वापस</button>
-            </div>
-            <div id="product-grid">
-                </div>
-        </div>
-
-    </div>
-
-    <div id="cart-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>आपका कार्ट</h2>
-            <div id="cart-items-list"></div>
-            <hr>
-            <h3>ऑर्डर करने के लिए जानकारी भरें</h3>
-            <form id="checkout-form">
-                <div class="form-group">
-                    <label for="customer-name">नाम:</label>
-                    <input type="text" id="customer-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="customer-email">ईमेल:</label>
-                    <input type="email" id="customer-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="customer-phone">फ़ोन नंबर:</label>
-                    <input type="tel" id="customer-phone" required>
-                </div>
-                <button type="submit" id="checkout-btn">ऑर्डर कन्फर्म करें</button>
-            </form>
+        <div class="hero-content">
+            <h2>गगन जयमाला में आपका स्वागत है</h2>
+            <p>बेहतरीन स्टेज और सजावट के लिए बुकिंग करें।</p>
+            <a href="categories.html" class="booking-now-btn">Booking Now</a>
         </div>
     </div>
 
     <script>
-        // ------------------ SUPABASE SETUP ------------------
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // ----------------------------------------------------
 
-        const productGrid = document.getElementById('product-grid');
-        const cartCount = document.getElementById('cart-count');
-        const categorySection = document.getElementById('category-section');
-        const productSection = document.getElementById('product-section');
-        let cart = [];
-
-        // Function: Wapas Category dikhane ke liye
-        function showCategories() {
-            categorySection.style.display = 'block';
-            productSection.style.display = 'none';
-        }
-
-        // Function: Products ko Category ke hisaab se filter karke load karna
-        async function loadProductsByCategory(categoryName) {
-            // UI Toggle
-            categorySection.style.display = 'none';
-            productSection.style.display = 'block';
-            document.getElementById('current-category-title').innerText = categoryName;
-            
-            productGrid.innerHTML = '<p style="text-align:center;">लोड हो रहा है... कृपया प्रतीक्षा करें...</p>';
-
-            // Supabase query with filter
-            const { data, error } = await supabaseClient
-                .from('products')
-                .select('*')
-                .eq('category', categoryName); // Dhyaan rahe Admin panel se 'category' text match hona chahiye
-
-            if (error) {
-                console.error('Error:', error);
-                productGrid.innerHTML = '<p>डेटा लोड करने में समस्या हुई।</p>';
-                return;
-            }
-            
-            productGrid.innerHTML = '';
-            if (data.length === 0) {
-                productGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">इस कैटेगरी में अभी कोई प्रोडक्ट नहीं है।</p>';
-                return;
-            }
-
-            data.forEach(product => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <img src="${product.media_url}" alt="${product.name}" class="product-media">
-                    <div class="product-info">
-                        <h3>${product.name}</h3>
-                        <p class="price">₹${product.price.toLocaleString()}</p>
-                        <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">कार्ट में जोड़ें</button>
-                    </div>
-                `;
-                productGrid.appendChild(card);
-            });
-        }
-
-        // --- Baki ka Cart Logic (Jo pehle tha) ---
-        function addToCart(id, name, price) {
-            const existingProduct = cart.find(item => item.id === id);
-            if (existingProduct) {
-                alert('यह पहले से कार्ट में है।');
-            } else {
-                cart.push({ id, name, price });
-                alert(`'${name}' कार्ट में जोड़ दिया गया।`);
-            }
-            updateCartUI();
-        }
-        
-        function updateCartUI() {
-            cartCount.innerText = cart.length;
-            const cartItemsList = document.getElementById('cart-items-list');
-            cartItemsList.innerHTML = cart.length === 0 ? '<p>कार्ट खाली है।</p>' : '';
-            cart.forEach(item => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'cart-item';
-                itemEl.innerHTML = `<span>${item.name}</span> <strong>₹${item.price.toLocaleString()}</strong>`;
-                cartItemsList.appendChild(itemEl);
-            });
-        }
-
-        const modal = document.getElementById('cart-modal');
-        const openCartBtn = document.getElementById('open-cart-btn');
-        const closeBtn = document.querySelector('.close-button');
-        openCartBtn.onclick = () => { modal.style.display = 'block'; updateCartUI(); }
-        closeBtn.onclick = () => { modal.style.display = 'none'; }
-        window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
-
-        // Checkout logic (Web3Forms) - Wahi rahega
-        const checkoutForm = document.getElementById('checkout-form');
-        checkoutForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (cart.length === 0) return alert('कार्ट खाली है!');
-
-            const customerName = document.getElementById('customer-name').value;
-            const customerEmail = document.getElementById('customer-email').value;
-            const customerPhone = document.getElementById('customer-phone').value;
-
-            const emailMessage = `नया ऑर्डर!\nनाम: ${customerName}\nफ़ोन: ${customerPhone}\nप्रोडक्ट्स: ${cart.map(i => i.name).join(', ')}`;
-
-            try {
-                const response = await fetch("https://api.web3forms.com/submit", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        access_key: "06ced9fc-e3ab-4485-a2c8-3808a3d63f8f",
-                        subject: "नया जयमाला ऑर्डर!",
-                        message: emailMessage,
-                    }),
+        async function initSlideshow() {
+            const { data } = await supabaseClient.from('products').select('media_url').limit(5);
+            const box = document.getElementById('slideshow-box');
+            if (data && data.length > 0) {
+                box.innerHTML = '';
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'mySlides';
+                    div.innerHTML = `<img src="${item.media_url}">`;
+                    box.appendChild(div);
                 });
-                
-                if (response.ok) {
-                    alert('ऑर्डर भेज दिया गया!');
-                    cart = []; updateCartUI(); modal.style.display = 'none'; checkoutForm.reset();
-                }
-            } catch (err) { alert('टेक्निकल एरर!'); }
-        });
+                startAnimation();
+            }
+        }
+
+        let slideIndex = 0;
+        function startAnimation() {
+            let slides = document.getElementsByClassName("mySlides");
+            for (let i = 0; i < slides.length; i++) { slides[i].style.display = "none"; }
+            slideIndex++;
+            if (slideIndex > slides.length) slideIndex = 1;
+            slides[slideIndex-1].style.display = "block";
+            setTimeout(startAnimation, 3000);
+        }
+        initSlideshow();
     </script>
 </body>
 </html>
