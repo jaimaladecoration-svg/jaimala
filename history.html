@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders | Gagan Jaimala</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header>
+        <h1 onclick="window.location.href='index.html'" style="cursor:pointer">Gagan Jaimala</h1>
+        <button onclick="window.location.href='index.html'">Wapas Jayein</button>
+    </header>
+
+    <div class="container">
+        <h2 style="text-align: center; margin-top: 20px;">Mera Order History</h2>
+        <div id="order-list" style="margin-top: 20px;">Orders load ho rahe hain...</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; // Apni key yahan dalo
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loadHistory() {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+                document.getElementById('order-list').innerHTML = "Pehle <a href='auth.html'>Login</a> karein.";
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            const list = document.getElementById('order-list');
+            if (data && data.length > 0) {
+                list.innerHTML = data.map(o => `
+                    <div style="border: 1px solid #5d331d; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fffcf5;">
+                        <p><strong>Booking ID:</strong> ${o.booking_id}</p>
+                        <p><strong>Items:</strong> ${o.items}</p>
+                        <p><strong>Total:</strong> ₹${o.total_price}</p>
+                        <p><strong>Date:</strong> ${new Date(o.created_at).toLocaleDateString()}</p>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = "<p>Abhi tak koi order nahi mila.</p>";
+            }
+        }
+        loadHistory();
+    </script>
+</body>
+</html>
