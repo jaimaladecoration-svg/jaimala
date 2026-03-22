@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories | Gagan Jaimala</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1 onclick="window.location.href='index.html'" style="cursor:pointer">Gagan Jaimala</h1>
+        <button class="cart-button" id="open-cart-btn">🛒 कार्ट (<span id="cart-count">0</span>)</button>
+    </header>
+
+    <div class="container">
+        <div id="category-section">
+            <h2 class="section-title">कैटेगरी चुनें</h2>
+            <div class="category-grid">
+                <div class="cat-card" onclick="loadProductsByCategory('Jaimala Stage')">Jaimala Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Hydraulic jaimala')">Hydraulic Jaimala</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Mandap stage')">Mandap Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Haldi stage')">Haldi Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Mehandi stage')">Mehandi Stage</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Flower gate')">Flower Gate</div>
+            </div>
+        </div>
+
+        <div id="product-section" style="display:none;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="current-category-title">प्रोडक्ट्स</h2>
+                <button class="btn-back" onclick="showCategories()">← वापस</button>
+            </div>
+            <div id="product-grid"></div>
+        </div>
+    </div>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>आपका कार्ट</h2>
+            <div id="cart-items-list"></div>
+            <hr>
+            <form id="checkout-form">
+                <input type="text" id="customer-name" placeholder="आपका नाम" required>
+                <input type="tel" id="customer-phone" placeholder="फ़ोन नंबर" required>
+                <input type="date" id="booking-date" required title="बुकिंग की तारीख चुनें">
+                <button type="submit" id="checkout-btn">ऑर्डर कन्फर्म करें & PDF डाउनलोड करें</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; 
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const categorySection = document.getElementById('category-section');
+        const productSection = document.getElementById('product-section');
+        const productGrid = document.getElementById('product-grid');
+        const cartCount = document.getElementById('cart-count');
+        let cart = [];
+
+        function showCategories() { categorySection.style.display = 'block'; productSection.style.display = 'none'; }
+
+        async function loadProductsByCategory(cat) {
+            categorySection.style.display = 'none'; productSection.style.display = 'block';
+            document.getElementById('current-category-title').innerText = cat;
+            productGrid.innerHTML = 'लोड हो रहा है...';
+            const { data } = await supabaseClient.from('products').select('*').eq('category', cat);
+            productGrid.innerHTML = '';
+            data.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `<img src="${p.media_url}" class="product-media"><div class="product-info"><h3>${p.name}</h3><p class="price">₹${p.price}</p><button class="add-to-cart-btn" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">कार्ट में जोड़ें</button></div>`;
+                productGrid.appendChild(card);
+            });
+        }
+
+        function addToCart(id, name, price) {
+            if (cart.find(i => i.id === id)) return alert('पहले से कार्ट में है!');
+            cart.push({ id, name, price });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            cartCount.innerText = cart.length;
+            const list = document.getElementById('cart-items-list');
+            list.innerHTML = cart.length === 0 ? '<p>कार्ट खाली है।</p>' : '';
+            cart.forEach(item => {
+                const d = document.createElement('div');
+                d.innerHTML = `${item.name} - ₹${item.price}`;
+                list.appendChild(d);
+            });
+        }
+
+        // PDF Generation Function
+        function downloadReceipt(name, phone, date, items) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(22);
+            doc.text("GAGAN JAIMALA - INVOICE", 105, 20, null, null, "center");
+            doc.setFontSize(12);
+            doc.text(`Customer Name: ${name}`, 20, 40);
+            doc.text(`Phone: ${phone}`, 20, 50);
+            doc.text(`Booking Date: ${date}`, 20, 60);
+            doc.text("--------------------------------------------------", 20, 70);
+            
+            let y = 80;
+            let total = 0;
+            items.forEach((item, index) => {
+                doc.text(`${index + 1}. ${item.name} : Rs. ${item.price}`, 20, y);
+                total += item.price;
+                y += 10;
+            });
+            
+            doc.text("--------------------------------------------------", 20, y);
+            doc.setFontSize(14);
+            doc.text(`GRAND TOTAL: Rs. ${total}`, 20, y + 10);
+            
+            doc.setFontSize(10);
+            doc.text("Owner Signature: __________________", 140, y + 30);
+            doc.text("Thank you for choosing Gagan Jaimala!", 105, y + 50, null, null, "center");
+            
+            doc.save(`Gagan_Jaimala_Receipt_${name}.pdf`);
+        }
+
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (cart.length === 0) return alert('कार्ट खाली है!');
+            
+            const name = document.getElementById('customer-name').value;
+            const phone = document.getElementById('customer-phone').value;
+            const date = document.getElementById('booking-date').value;
+            const productNames = cart.map(i => i.name).join(', ');
+
+            // Email send via Web3Forms
+            const response = await fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    access_key: "06ced9fc-e3ab-4485-a2c8-3808a3d63f8f",
+                    subject: "Naya Booking Order!",
+                    message: `Name: ${name}\nPhone: ${phone}\nDate: ${date}\nProducts: ${productNames}`
+                }),
+            });
+
+            if (response.ok) {
+                downloadReceipt(name, phone, date, cart);
+                alert('ऑर्डर कन्फर्म! आपकी रसीद डाउनलोड हो रही है।');
+                cart = []; updateCartUI(); document.getElementById('cart-modal').style.display = 'none';
+            }
+        });
+
+        const modal = document.getElementById('cart-modal');
+        document.getElementById('open-cart-btn').onclick = () => modal.style.display = 'block';
+        document.querySelector('.close-button').onclick = () => modal.style.display = 'none';
+    </script>
+</body>
+</html>
