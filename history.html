@@ -7,70 +7,68 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background-color: #fffcf5; margin: 0; padding: 15px; }
-        .order-card { 
-            background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 6px solid #5d331d;
-        }
         .header { background: #5d331d; color: white; padding: 15px; text-align: center; margin: -15px -15px 20px -15px; }
+        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 6px solid #5d331d; }
         .customer { font-weight: bold; color: #5d331d; }
-        .items { margin: 10px 0; font-size: 15px; line-height: 1.4; color: #333; }
-        .date { font-size: 12px; color: #777; }
-        #order-list { min-height: 100px; text-align: center; }
+        .items { margin: 10px 0; font-size: 14px; color: #333; }
+        .date { font-size: 11px; color: #777; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h2 style="margin:0;">Gagan Jaimala</h2>
-        <button onclick="window.location.href='categories.html'" style="margin-top:10px; cursor:pointer; background:white; color:#5d331d; border:none; padding:5px 15px; border-radius:5px;">Wapas Jayein</button>
+        <button onclick="window.location.href='index.html'" style="margin-top:10px; cursor:pointer; background:white; color:#5d331d; border:none; padding:5px 15px; border-radius:5px;">Home Par Jayein</button>
     </div>
 
-    <h3 style="text-align:center;">Mera Order History</h3>
-    <div id="order-list">Panna refresh karein ya thoda intezar karein...</div>
+    <h3 style="text-align:center;">Aapke Orders</h3>
+    <div id="order-list" style="text-align:center;">Loading your private orders...</div>
 
     <script>
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
-        
-        // Safety check if library loaded
-        if (typeof window.supabase === 'undefined') {
-            document.getElementById('order-list').innerHTML = "<p style='color:red;'>Library Load nahi hui. Internet check karein.</p>";
-        } else {
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            showOrders(supabase);
-        }
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function showOrders(supabase) {
+        async function showMyOrders() {
             const list = document.getElementById('order-list');
 
             try {
-                // Direct fetch to bypass all auth blockers for testing
-                const { data, error } = await supabase
-                    .from('orders')
-                    .select('*');
+                // 1. Pehle check karo kaunsa user logged in hai
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-                if (error) {
-                    list.innerHTML = "<p style='color:red;'>Error: " + error.message + "</p>";
-                    console.error("Fetch error:", error);
+                if (authError || !user) {
+                    list.innerHTML = "<p>Orders dekhne ke liye <a href='auth.html'>Login</a> karein.</p>";
                     return;
                 }
 
+                // 2. Sirf wahi orders lao jiska user_id login user se match kare
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('user_id', user.id) // <--- Ye line Privacy maintain karti hai
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
                 if (!data || data.length === 0) {
-                    list.innerHTML = "<p>Abhi tak koi order nahi hai.</p>";
+                    list.innerHTML = "<p>Aapne abhi tak koi order nahi kiya hai.</p>";
                     return;
                 }
 
                 list.innerHTML = data.map(o => `
                     <div class="order-card">
-                        <div class="customer">Customer: ${o.customer_name || 'Anonymous'}</div>
-                        <div class="items"><strong>Items:</strong><br>${o.items}</div>
+                        <div class="customer">Customer: ${o.customer_name}</div>
+                        <div class="items"><strong>Booking:</strong><br>${o.items}</div>
                         <div class="date">Date: ${new Date(o.created_at).toLocaleString('hi-IN')}</div>
                     </div>
                 `).join('');
+
             } catch (err) {
-                list.innerHTML = "<p style='color:red;'>Kuch galat hua: " + err.message + "</p>";
+                list.innerHTML = "<p style='color:red;'>Galti: " + err.message + "</p>";
             }
         }
+
+        showMyOrders();
     </script>
 </body>
 </html>
