@@ -12,7 +12,10 @@
 
     <header>
         <h1 onclick="window.location.href='index.html'" style="cursor:pointer">Gagan Jaimala</h1>
-        <button class="cart-button" id="open-cart-btn">🛒 कार्ट (<span id="cart-count">0</span>)</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.location.href='history.html'">Mera History</button>
+            <button class="cart-button" id="open-cart-btn">🛒 कार्ट (<span id="cart-count">0</span>)</button>
+        </div>
     </header>
 
     <div class="container">
@@ -53,9 +56,11 @@
     </div>
 
     <script>
+        // Supabase Configuration
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         const SIGN_URL = "https://res.cloudinary.com/djnns1qlt/image/upload/f_auto,q_auto/1000056471_imlbyg";
 
         let cart = [];
@@ -97,9 +102,8 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Header
             doc.setFontSize(22);
-            doc.setTextColor(93, 51, 29); // Dark Brown
+            doc.setTextColor(93, 51, 29);
             doc.text("GAGAN JAIMALA", 105, 20, null, null, "center");
             
             doc.setFontSize(10);
@@ -107,14 +111,12 @@
             doc.text(`Booking ID: ${bookingId}`, 150, 30);
             doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, 35);
 
-            // Customer Info
             doc.setFontSize(12);
             doc.text("Customer Details:", 20, 50);
             doc.text(`Name: ${name}`, 20, 60);
             doc.text(`Phone: ${phone}`, 20, 70);
             doc.text(`Event Date: ${date}`, 20, 80);
 
-            // Table Header
             doc.line(20, 90, 190, 90);
             doc.text("Product Name", 25, 97);
             doc.text("Price", 160, 97);
@@ -134,11 +136,9 @@
             doc.text("TOTAL AMOUNT:", 110, y + 10);
             doc.text(`Rs. ${total}`, 160, y + 10);
 
-            // Digital Signature
             doc.setFont(undefined, 'normal');
             doc.text("Authorized Signature:", 140, y + 30);
             
-            // Adding the signature image from link
             try {
                 doc.addImage(SIGN_URL, 'PNG', 140, y + 35, 40, 20);
             } catch(e) {
@@ -150,29 +150,59 @@
 
         document.getElementById('checkout-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Check if user is logged in
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                alert("Pehle Login karein tabhi order kar sakte hain!");
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            if(cart.length === 0) {
+                alert("Cart khali hai!");
+                return;
+            }
+
             const bookingId = "GJ-" + Math.floor(1000 + Math.random() * 9000);
             const name = document.getElementById('customer-name').value;
             const phone = document.getElementById('customer-phone').value;
             const date = document.getElementById('booking-date').value;
+            const itemsList = cart.map(i => i.name).join(', ');
+            const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
 
-            // Send to Web3Forms
+            // 1. Save to Supabase 'orders' table
+            const { error } = await supabaseClient.from('orders').insert([{
+                user_id: user.id,
+                customer_name: name,
+                items: itemsList,
+                total_price: totalPrice,
+                booking_id: bookingId
+            }]);
+
+            if (error) {
+                alert("Order save karne mein galti hui: " + error.message);
+                return;
+            }
+
+            // 2. Send to Web3Forms
             await fetch("https://api.web3forms.com/submit", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     access_key: "06ced9fc-e3ab-4485-a2c8-3808a3d63f8f",
                     subject: `New Booking: ${bookingId}`,
-                    message: `ID: ${bookingId}\nName: ${name}\nPhone: ${phone}\nEvent Date: ${date}\nItems: ${cart.map(i=>i.name).join(', ')}`
+                    message: `ID: ${bookingId}\nName: ${name}\nPhone: ${phone}\nDate: ${date}\nItems: ${itemsList}`
                 }),
             });
 
+            // 3. Generate PDF
             await generatePDF(name, phone, date, bookingId);
-            alert("Booking Successful! Receipt Downloaded.");
-            cart = [];
-            location.reload();
+            
+            alert("Booking Successful! Aapka order history mein save ho gaya hai.");
+            window.location.href = 'history.html'; // Redirect to history
         });
 
-        // Modal Logic
         const modal = document.getElementById('cart-modal');
         document.getElementById('open-cart-btn').onclick = () => modal.style.display = 'block';
         document.querySelector('.close-button').onclick = () => modal.style.display = 'none';
