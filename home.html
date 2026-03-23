@@ -3,142 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gagan Jaimala | Welcome</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Gagan Jaimala | Home</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Profile Icon Style */
-        .profile-container {
-            position: absolute; top: 15px; right: 15px; z-index: 1000;
-        }
-        .profile-icon {
-            background: #C5A059; color: #5D331D; width: 45px; height: 45px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; border: 2px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
+        body { font-family: sans-serif; margin: 0; background: #fffcf5; text-align: center; }
+        header { background: #5d331d; color: white; padding: 15px; position: relative; }
         
-        /* Sidebar Menu Style */
-        .sidebar {
-            position: fixed; top: 0; right: -280px; width: 260px; height: 100%;
-            background: #fffcf5; box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-            transition: 0.4s; z-index: 2000; padding: 20px; box-sizing: border-box;
-        }
+        /* Profile Sidebar */
+        .profile-icon { position: absolute; top: 15px; right: 15px; background: #C5A059; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; font-size: 20px; }
+        .sidebar { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.2); transition: 0.4s; z-index: 2000; padding: 20px; text-align: left; }
         .sidebar.active { right: 0; }
-        .sidebar h3 { color: #5D331D; border-bottom: 2px solid #5D331D; padding-bottom: 10px; margin-top: 40px; }
-        .sidebar p { font-size: 14px; color: #333; margin: 15px 0; }
+        .close-btn { font-size: 30px; cursor: pointer; color: #5d331d; }
         
-        .menu-btn {
-            display: block; width: 100%; padding: 12px; margin: 10px 0;
-            background: #5D331D; color: white; border: none; border-radius: 8px;
-            text-align: center; text-decoration: none; font-weight: bold; cursor: pointer;
-        }
-        .menu-btn.contact { background: #25D366; } /* Green for contact */
-        .close-btn { position: absolute; top: 15px; left: 15px; font-size: 25px; cursor: pointer; color: #5D331D; }
+        .menu-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; background: #5d331d; color: white; border: none; border-radius: 8px; text-align: center; text-decoration: none; font-weight: bold; cursor: pointer; }
+        .menu-btn.contact { background: #25D366; }
 
-        /* Existing Styles */
-        .slideshow-container {
-            max-width: 100%; position: relative; margin: 20px auto; height: 350px;
-            overflow: hidden; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            background: #f0f0f0;
-        }
-        .mySlides { display: none; width: 100%; height: 100%; animation: fade 1.5s; }
+        .slideshow-container { width: 95%; margin: 20px auto; height: 300px; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .mySlides { display: none; width: 100%; height: 100%; }
         .mySlides img { width: 100%; height: 100%; object-fit: cover; }
-        @keyframes fade { from {opacity: .4} to {opacity: 1} }
-        .hero-content { text-align: center; padding: 40px 20px; }
-        .hero-content h2 { color: #5D331D; font-size: 2.2rem; margin-bottom: 10px; }
-        .booking-now-btn {
-            background: #5D331D; color: white; padding: 18px 40px; font-size: 1.3rem;
-            border: none; border-radius: 50px; cursor: pointer; font-weight: bold;
-            text-decoration: none; display: inline-block; transition: 0.3s;
-        }
+        .welcome-text { font-size: 22px; color: #5d331d; font-weight: bold; margin: 20px 0; }
+        .booking-btn { background: #5d331d; color: white; padding: 15px 30px; border-radius: 30px; text-decoration: none; font-size: 18px; font-weight: bold; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <div class="profile-container">
+    <header>
+        <h1>Gagan Jaimala</h1>
         <div class="profile-icon" onclick="toggleMenu()">👤</div>
-    </div>
+    </header>
 
     <div class="sidebar" id="sidebar">
         <span class="close-btn" onclick="toggleMenu()">×</span>
-        <h3>User Profile</h3>
-        <p id="user-email">Email: Loading...</p>
-        
+        <h3 style="color:#5d331d; border-bottom: 2px solid #eee; padding-bottom:10px;">Aapka Profile</h3>
+        <p id="user-name" style="font-weight:bold; margin-bottom:5px;">Naam: Loading...</p>
+        <p id="user-email" style="font-size:13px; color:#666;">Email: Loading...</p>
         <hr>
         <a href="history.html" class="menu-btn">My Orders</a>
-        
-        <a href="tel:+91XXXXXXXXXX" class="menu-btn contact">📞 Contact Us</a>
-        
+        <a href="tel:+918873377742" class="menu-btn contact">📞 Contact Us</a>
         <button onclick="logout()" class="menu-btn" style="background:#cc0000;">Logout</button>
     </div>
 
-    <header><h1>Gagan Jaimala</h1></header>
+    <div class="welcome-text" id="welcome-msg">Welcome, Guest</div>
 
-    <div class="container">
-        <div class="slideshow-container" id="slideshow-box">
-            <p style="text-align:center; padding-top:150px;">Photos लोड हो रही हैं...</p>
-        </div>
-        <div class="hero-content">
-            <h2>गगन जयमाला में आपका स्वागत है</h2>
-            <p>बेहतरीन स्टेज और सजावट के लिए बुकिंग करें।</p>
-            <a href="categories.html" class="booking-now-btn">Booking Now</a>
-        </div>
+    <div class="slideshow-container" id="slideshow-box">
+        <p style="padding-top:130px;">Photos load ho rahi hain...</p>
+    </div>
+
+    <div style="padding: 20px;">
+        <p>Best Stage Decoration ke liye niche click karein:</p>
+        <a href="categories.html" class="booking-btn">Booking Now</a>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw'; 
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Toggle Sidebar
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
 
-        // Fetch User Info
-        async function getUserInfo() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+        async function loadProfile() {
+            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
+                const name = user.user_metadata.display_name || "Prince";
+                document.getElementById('welcome-msg').innerText = "Welcome, " + name;
+                document.getElementById('user-name').innerText = "Naam: " + name;
                 document.getElementById('user-email').innerText = "Email: " + user.email;
             } else {
-                window.location.href = 'index.html'; // Agar login nahi hai to wapas bhejo
+                window.location.href = 'index.html';
             }
         }
 
-        // Logout function
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            window.location.href = 'index.html';
-        }
+        async function logout() { await supabase.auth.signOut(); window.location.href = 'index.html'; }
 
-        async function initSlideshow() {
-            const { data } = await supabaseClient.from('products').select('media_url').limit(5);
+        async function initSlides() {
+            const { data } = await supabase.from('products').select('media_url').limit(5);
             const box = document.getElementById('slideshow-box');
             if (data && data.length > 0) {
-                box.innerHTML = '';
-                data.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'mySlides';
-                    div.innerHTML = `<img src="${item.media_url}">`;
-                    box.appendChild(div);
-                });
-                startAnimation();
+                box.innerHTML = data.map(i => `<div class="mySlides"><img src="${i.media_url}"></div>`).join('');
+                startAnim();
             }
         }
 
-        let slideIndex = 0;
-        function startAnimation() {
-            let slides = document.getElementsByClassName("mySlides");
-            if (slides.length === 0) return;
-            for (let i = 0; i < slides.length; i++) { slides[i].style.display = "none"; }
-            slideIndex++;
-            if (slideIndex > slides.length) slideIndex = 1;
-            slides[slideIndex-1].style.display = "block";
-            setTimeout(startAnimation, 3000);
+        let idx = 0;
+        function startAnim() {
+            let s = document.getElementsByClassName("mySlides");
+            for (let i=0; i<s.length; i++) s[i].style.display = "none";
+            idx++; if (idx > s.length) idx = 1;
+            s[idx-1].style.display = "block";
+            setTimeout(startAnim, 3000);
         }
 
-        getUserInfo();
-        initSlideshow();
+        loadProfile();
+        initSlides();
     </script>
 </body>
 </html>
