@@ -14,13 +14,13 @@
         <h1 onclick="window.location.href='index.html'" style="cursor:pointer">Gagan Jaimala</h1>
         <div style="display: flex; gap: 10px;">
             
-            <button class="cart-button" id="open-cart-btn">🛒 कार्ट (<span id="cart-count">0</span>)</button>
+            <button class="cart-button" id="open-cart-btn">🛒 Cart (<span id="cart-count">0</span>)</button>
         </div>
     </header>
 
     <div class="container">
         <div id="category-section">
-            <h2 class="section-title">कैटेगरी चुनें</h2>
+            <h2 class="section-title">Choose Category</h2>
             <div class="category-grid">
                 <div class="cat-card" onclick="loadProductsByCategory('Jaimala Stage')">Jaimala Stage</div>
                 <div class="cat-card" onclick="loadProductsByCategory('Hydraulic jaimala')">Hydraulic Jaimala</div>
@@ -28,13 +28,18 @@
                 <div class="cat-card" onclick="loadProductsByCategory('Haldi stage')">Haldi Stage</div>
                 <div class="cat-card" onclick="loadProductsByCategory('Mehandi stage')">Mehandi Stage</div>
                 <div class="cat-card" onclick="loadProductsByCategory('Flower gate')">Flower Gate</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Balloon gate')">Balloon Gate</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Bride-Groom Entry')">Bride-Groom Entry</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Bed Decoration')">Bed Decoration</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Birthday Decoration')">Birthday Decoration</div>
+                <div class="cat-card" onclick="loadProductsByCategory('Dancing stage')">Dancing Stage</div>
             </div>
         </div>
 
         <div id="product-section" style="display:none;">
             <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 id="current-category-title">प्रोडक्ट्स</h2>
-                <button class="btn-back" onclick="showCategories()">← वापस</button>
+                <h2 id="current-category-title">Products</h2>
+                <button class="btn-back" onclick="showCategories()">← Back</button>
             </div>
             <div id="product-grid"></div>
         </div>
@@ -43,14 +48,14 @@
     <div id="cart-modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2>आपका कार्ट</h2>
+            <h2>Your Cart</h2>
             <div id="cart-items-list"></div>
             <hr>
             <form id="checkout-form">
-                <input type="text" id="customer-name" placeholder="आपका नाम" required>
-                <input type="tel" id="customer-phone" placeholder="फ़ोन नंबर" required>
+                <input type="text" id="customer-name" placeholder="Your Name" required>
+                <input type="tel" id="customer-phone" placeholder="Phone no" required>
                 <input type="date" id="booking-date" required>
-                <button type="submit" id="checkout-btn">ऑर्डर कन्फर्म करें & PDF डाउनलोड करें</button>
+                <button type="submit" id="checkout-btn">Confirm Booking</button>
             </form>
         </div>
     </div>
