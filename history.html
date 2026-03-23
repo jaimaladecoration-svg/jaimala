@@ -6,11 +6,11 @@
     <title>My Orders | Gagan Jaimala</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background-color: #fffcf5; margin: 0; padding: 15px; }
+        body { font-family: sans-serif; background-color: #121212; color: white; margin: 0; padding: 15px; }
         .header { background: #5d331d; color: white; padding: 15px; text-align: center; margin: -15px -15px 20px -15px; }
-        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 6px solid #5d331d; text-align: left; }
-        .customer { font-weight: bold; color: #5d331d; font-size: 1.1em; }
-        .items { margin: 10px 0; font-size: 14px; color: #333; }
+        .order-card { background: #1e1e1e; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 6px solid #5d331d; text-align: left; }
+        .customer { font-weight: bold; color: #ffab7d; font-size: 1.1em; }
+        .items { margin: 10px 0; font-size: 14px; color: #ccc; }
         .date { font-size: 11px; color: #777; }
         #order-list { text-align: center; margin-top: 20px; }
         .btn-home { margin-top: 10px; cursor: pointer; background: white; color: #5d331d; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; }
@@ -23,8 +23,8 @@
         <button class="btn-home" onclick="window.location.href='home.html'">Home Par Jayein</button>
     </div>
 
-    <h3 style="text-align:center; color: #5d331d;">Aapke Orders</h3>
-    <div id="order-list">Data load ho raha hai...</div>
+    <h3 style="text-align:center;">Aapke Orders</h3>
+    <div id="order-list">Orders check kiye ja rahe hain...</div>
 
     <script>
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
@@ -35,47 +35,45 @@
             const list = document.getElementById('order-list');
 
             try {
-                // 1. Session check karna (Ye zyada fast aur reliable hai)
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                // 1. Sidha user ka data check karo
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-                if (sessionError || !session) {
-                    list.innerHTML = "<p>Aap logged in nahi hain. <br><br> <a href='index.html' style='color:#5d331d; font-weight:bold;'>Yahan click karke Login karein</a></p>";
+                if (userError || !user) {
+                    list.innerHTML = "<p>Aap logged in nahi hain.<br><a href='index.html' style='color:#ffab7d;'>Yahan Click karke Login karein</a></p>";
                     return;
                 }
 
-                const userId = session.user.id;
-                console.log("Logged in User ID:", userId);
-
-                // 2. Fetching only this user's orders
+                // 2. Fetching orders with Logged In User ID
                 const { data, error } = await supabase
                     .from('orders')
                     .select('*')
-                    .eq('user_id', userId)
+                    .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
-                    list.innerHTML = "<p>Aapki koi order history nahi mili.</p>";
+                    list.innerHTML = "<p>Aapne abhi tak koi order nahi kiya hai.</p>";
                     return;
                 }
 
-                // 3. Displaying orders
+                // 3. Render Data
                 list.innerHTML = data.map(o => `
                     <div class="order-card">
-                        <div class="customer">Order for: ${o.customer_name}</div>
-                        <div class="items"><strong>Details:</strong><br>${o.items}</div>
+                        <div class="customer">Order Name: ${o.customer_name}</div>
+                        <div class="items"><strong>Items:</strong><br>${o.items}</div>
                         <div class="date">Date: ${new Date(o.created_at).toLocaleString('hi-IN')}</div>
                     </div>
                 `).join('');
 
             } catch (err) {
-                list.innerHTML = "<p style='color:red;'>Galti hui: " + err.message + "</p>";
-                console.error(err);
+                list.innerHTML = "<p style='color:red;'>Error: " + err.message + "</p>";
+                console.error("Fetch Error:", err);
             }
         }
 
-        fetchMyOrders();
+        // 1 second ka delay taaki Supabase library fully ready ho jaye
+        setTimeout(fetchMyOrders, 1000);
     </script>
 </body>
 </html>
