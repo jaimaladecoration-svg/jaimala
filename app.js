@@ -22,7 +22,7 @@ async function filterByCategory(categoryName) {
     document.getElementById('product-section').style.display = 'block';
     document.getElementById('selected-category-name').innerText = categoryName;
     
-    productGrid.innerHTML = '<p>लोड हो रहा है...</p>';
+    productGrid.innerHTML = '<p>Loading...</p>';
 
     const { data, error } = await supabaseClient
         .from('products')
@@ -36,7 +36,7 @@ async function filterByCategory(categoryName) {
 
     productGrid.innerHTML = '';
     if (data.length === 0) {
-        productGrid.innerHTML = '<p>इस कैटेगरी में अभी कोई प्रोडक्ट नहीं है।</p>';
+        productGrid.innerHTML = '<p>No Products Available</p>';
     }
 
     data.forEach(product => {
@@ -47,7 +47,7 @@ async function filterByCategory(categoryName) {
             <div class="product-info">
                 <h3>${product.name}</h3>
                 <p class="price">₹${product.price.toLocaleString()}</p>
-                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">कार्ट में जोड़ें</button>
+                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Add to cart</button>
             </div>
         `;
         productGrid.appendChild(card);
@@ -57,10 +57,10 @@ async function filterByCategory(categoryName) {
 // Cart Logic (Same as your original)
 function addToCart(id, name, price) {
     const existing = cart.find(item => item.id === id);
-    if (existing) { alert('पहले से कार्ट में है।'); }
+    if (existing) { alert('Already in cart'); }
     else {
         cart.push({ id, name, price });
-        alert(`'${name}' कार्ट में जोड़ दिया गया।`);
+        alert(`'${name}' Added to cart`);
     }
     updateCartUI();
 }
@@ -68,7 +68,7 @@ function addToCart(id, name, price) {
 function updateCartUI() {
     cartCount.innerText = cart.length;
     const list = document.getElementById('cart-items-list');
-    list.innerHTML = cart.length === 0 ? '<p>खाली है</p>' : '';
+    list.innerHTML = cart.length === 0 ? '<p>Empty</p>' : '';
     cart.forEach(item => {
         const div = document.createElement('div');
         div.className = 'cart-item';
