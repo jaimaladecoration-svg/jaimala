@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders | Gagan Jaimala</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background-color: #121212; color: white; margin: 0; padding: 15px; }
         .header { background: #5d331d; color: white; padding: 15px; text-align: center; margin: -15px -15px 20px -15px; }
@@ -24,56 +24,61 @@
     </div>
 
     <h3 style="text-align:center;">Aapke Orders</h3>
-    <div id="order-list">Orders check kiye ja rahe hain...</div>
+    <div id="order-list">Dhara rakhien, orders dhoond rahe hain...</div>
 
     <script>
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function fetchMyOrders() {
+        
+        async function fetchOrders() {
             const list = document.getElementById('order-list');
+            
+            if (typeof window.supabase === 'undefined') {
+                list.innerHTML = "Library load nahi hui. Net check karein.";
+                return;
+            }
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             try {
-                // 1. Sidha user ka data check karo
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                // User check karne ka sabse fast tareeka
+                const { data: { user } } = await supabase.auth.getUser();
 
-                if (userError || !user) {
-                    list.innerHTML = "<p>Aap logged in nahi hain.<br><a href='index.html' style='color:#ffab7d;'>Yahan Click karke Login karein</a></p>";
+                if (!user) {
+                    list.innerHTML = "Pehle login karein. <br><br><button class='btn-home' onclick=\"window.location.href='index.html'\">Login Page</button>";
                     return;
                 }
 
-                // 2. Fetching orders with Logged In User ID
+                // Data fetch karna
                 const { data, error } = await supabase
                     .from('orders')
                     .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false });
+                    .eq('user_id', user.id);
 
                 if (error) throw error;
 
-                if (!data || data.length === 0) {
-                    list.innerHTML = "<p>Aapne abhi tak koi order nahi kiya hai.</p>";
+                if (data.length === 0) {
+                    list.innerHTML = "Aapne abhi tak koi order nahi kiya.";
                     return;
                 }
 
-                // 3. Render Data
                 list.innerHTML = data.map(o => `
                     <div class="order-card">
-                        <div class="customer">Order Name: ${o.customer_name}</div>
-                        <div class="items"><strong>Items:</strong><br>${o.items}</div>
-                        <div class="date">Date: ${new Date(o.created_at).toLocaleString('hi-IN')}</div>
+                        <div class="customer">Customer: ${o.customer_name}</div>
+                        <div class="items">Items: ${o.items}</div>
+                        <div class="date">${new Date(o.created_at).toLocaleString()}</div>
                     </div>
                 `).join('');
 
             } catch (err) {
-                list.innerHTML = "<p style='color:red;'>Error: " + err.message + "</p>";
-                console.error("Fetch Error:", err);
+                list.innerHTML = "Galti: " + err.message;
             }
         }
 
-        // 1 second ka delay taaki Supabase library fully ready ho jaye
-        setTimeout(fetchMyOrders, 1000);
+        // Isko execute karne ke liye delay
+        window.onload = () => {
+            setTimeout(fetchOrders, 1500);
+        };
     </script>
 </body>
 </html>
