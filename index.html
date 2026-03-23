@@ -6,98 +6,59 @@
     <title>Login | Gagan Jaimala</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fffcf5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .auth-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 5px solid #5d331d; }
-        h2 { color: #5d331d; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #5d331d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #452615; }
+        body { font-family: sans-serif; background-color: #fffcf5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; border-top: 5px solid #5d331d; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #5d331d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .toggle-link { margin-top: 15px; color: #5d331d; cursor: pointer; text-decoration: underline; font-size: 14px; display: block; }
-        #message { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; }
+        #message { margin-top: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="auth-container">
     <h2 id="auth-title">Login Karein</h2>
-    
-    <input type="email" id="email" placeholder="Apna Email Likhein" required>
-    <input type="password" id="password" placeholder="Password Likhein" required>
-    
+    <input type="text" id="full_name" placeholder="Apna Poora Naam" style="display: none;">
+    <input type="email" id="email" placeholder="Email ID">
+    <input type="password" id="password" placeholder="Password">
     <button id="auth-btn" onclick="handleAuth()">Login</button>
-    
     <div id="message"></div>
-    
-    <span class="toggle-link" id="toggle-link" onclick="toggleAuth()">Naya account banana hai? Signup karein</span>
+    <span class="toggle-link" id="toggle-link" onclick="toggleAuth()">Naya account banayein? Signup</span>
 </div>
 
 <script>
     const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let isLoginMode = true;
 
     function toggleAuth() {
         isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? 'Login Karein' : 'Naya Account Banayein';
+        document.getElementById('auth-title').innerText = isLoginMode ? 'Login Karein' : 'Signup Karein';
+        document.getElementById('full_name').style.display = isLoginMode ? 'none' : 'block';
         document.getElementById('auth-btn').innerText = isLoginMode ? 'Login' : 'Signup';
-        document.getElementById('toggle-link').innerText = isLoginMode ? 'Naya account banana hai? Signup karein' : 'Pehle se account hai? Login karein';
-        document.getElementById('message').innerText = '';
+        document.getElementById('toggle-link').innerText = isLoginMode ? 'Naya account banayein? Signup' : 'Pehle se account hai? Login';
     }
 
     async function handleAuth() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const name = document.getElementById('full_name').value;
         const msg = document.getElementById('message');
 
-        if (!email || !password) {
-            msg.innerText = "Email aur Password dono bhariye!";
-            msg.style.color = "red";
-            return;
-        }
-
-        msg.innerText = "Loading...";
-        msg.style.color = "#5d331d";
-
-        try {
-            if (isLoginMode) {
-                // LOGIN PROCESS
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                
-                msg.innerText = "Login Safal! Redirecting...";
-                msg.style.color = "green";
-                
-                // Success: Go to home.html (Slide Show Page)
-                setTimeout(() => {
-                    window.location.href = 'home.html';
-                }, 1500);
-
-            } else {
-                // SIGNUP PROCESS
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) throw error;
-                
-                msg.innerText = "Account ban gaya! Ab login karein.";
-                msg.style.color = "green";
-                toggleAuth();
-            }
-        } catch (err) {
-            msg.innerText = "Galti: " + err.message;
-            msg.style.color = "red";
+        if (isLoginMode) {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) { msg.innerText = error.message; msg.style.color="red"; }
+            else { window.location.href = 'home.html'; }
+        } else {
+            const { data, error } = await supabase.auth.signUp({
+                email, password, options: { data: { display_name: name } }
+            });
+            if (error) { msg.innerText = error.message; msg.style.color="red"; }
+            else { msg.innerText = "Account ban gaya! Ab login karein."; msg.style.color="green"; toggleAuth(); }
         }
     }
-
-    // Auto-check if already logged in
-    async function checkUser() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (user) {
-            window.location.href = 'home.html';
-        }
-    }
-    checkUser();
 </script>
-
 </body>
 </html>
