@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gagan Jaimala - एडमिन पैनल</title>
+    <title>Gagan Jaimala - Admin Panel</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -15,43 +15,48 @@
         </header>
         
         <form id="add-product-form" style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-            <h3 style="color: #5D331D;">नया प्रोडक्ट जोड़ें</h3>
+            <h3 style="color: #5D331D;">Add new product</h3>
             
             <div class="form-group">
-                <label>प्रोडक्ट का नाम:</label>
-                <input type="text" id="product-name" placeholder="जैसे: Royal Haldi Setup" required>
+                <label>Product name:</label>
+                <input type="text" id="product-name" placeholder="Like: Royal Haldi Setup" required>
             </div>
 
             <div class="form-group">
-                <label>कैटेगरी चुनें (सबसे ज़रूरी):</label>
+                <label>Choose category:</label>
                 <select id="product-category" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;" required>
-                    <option value="">-- कैटेगरी चुनें --</option>
+                    <option value="">-- Choose category --</option>
                     <option value="Jaimala Stage">Jaimala Stage</option>
                     <option value="Hydraulic jaimala">Hydraulic Jaimala</option>
                     <option value="Mandap stage">Mandap Stage</option>
                     <option value="Haldi stage">Haldi Stage</option>
                     <option value="Mehandi stage">Mehandi Stage</option>
                     <option value="Flower gate">Flower Gate</option>
+                    <option value="Balloon gate">Balloon Gate</option>
+                    <option value="Bed decoration">Bed decoration</option>
+                    <option value="Bride-groom entry">Bride-groom entry</option>
+                    <option value="Birthday decoration">Birthday decoration</option>
+                    <option value="Dancing stage">Dancing stage</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label>कीमत (₹):</label>
+                <label>Price (₹):</label>
                 <input type="number" id="product-price" placeholder="15000" required>
             </div>
 
             <div class="form-group">
-                <label>फोटो चुनें:</label>
+                <label>Select Photo:</label>
                 <input type="file" id="product-media" accept="image/*" required>
             </div>
 
-            <button type="button" id="add-product-btn" class="btn" style="background: #C5A059; font-weight: bold;">प्रोडक्ट अपलोड करें</button>
+            <button type="button" id="add-product-btn" class="btn" style="background: #C5A059; font-weight: bold;">Upload product</button>
         </form>
 
         <hr style="margin: 2rem 0; border: 0; border-top: 2px solid #ddd;">
 
         <div id="admin-product-list-section">
-            <h3 style="color: #5D331D;">मौजूदा प्रोडक्ट्स की लिस्ट</h3>
+            <h3 style="color: #5D331D;">Available Products</h3>
             <div id="admin-product-list">
                 </div>
         </div>
@@ -68,9 +73,9 @@
 
         // Password Check
         function checkPassword() {
-            const password = prompt("एडमिन पासवर्ड डालें:", "");
-            if (password !== "prince123") { // Password yahan badal sakte ho
-                alert("गलत पासवर्ड!");
+            const password = prompt("Password:", "");
+            if (password !== "1590") { // Password yahan badal sakte ho
+                alert("Wrong password!");
                 document.body.innerHTML = '<h1 style="text-align:center; margin-top:50px;">Access Denied</h1>';
                 return false;
             }
@@ -110,12 +115,12 @@
             const mediaFile = document.getElementById('product-media').files[0];
 
             if (!name || !category || !price || !mediaFile) {
-                alert('भाई, सारी जानकारी भरो!');
+                alert('Fill all information');
                 return;
             }
 
             addProductBtn.disabled = true;
-            addProductBtn.innerText = 'अपलोड हो रहा है...';
+            addProductBtn.innerText = 'Uploading...';
 
             // 1. Storage Upload
             const fileName = `${Date.now()}_${mediaFile.name}`;
@@ -148,11 +153,11 @@
                 loadAdminProducts();
             }
             addProductBtn.disabled = false;
-            addProductBtn.innerText = 'प्रोडक्ट अपलोड करें';
+            addProductBtn.innerText = 'Upload product';
         });
 
         async function deleteProduct(id) {
-            if (!confirm('क्या आप इसे हटाना चाहते हैं?')) return;
+            if (!confirm('do you want to delete?')) return;
             const { error } = await supabaseClient.from('products').delete().eq('id', id);
             if (!error) loadAdminProducts();
         }
