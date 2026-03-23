@@ -23,8 +23,8 @@
         <button class="btn-home" onclick="window.location.href='home.html'">Home Par Jayein</button>
     </div>
 
-    <h3 style="text-align:center;">Aapke Orders</h3>
-    <div id="order-list">Dhara rakhien, orders dhoond rahe hain...</div>
+    <h3 style="text-align:center;">Your Orders</h3>
+    <div id="order-list">Please wait...</div>
 
     <script>
         const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
@@ -58,7 +58,7 @@
                 if (error) throw error;
 
                 if (data.length === 0) {
-                    list.innerHTML = "Aapne abhi tak koi order nahi kiya.";
+                    list.innerHTML = "No Orders.";
                     return;
                 }
 
