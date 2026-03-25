@@ -25,20 +25,20 @@
 <body>
 
 <div class="auth-container">
-    <h2 id="auth-title">Login Karein</h2>
+    <h2 id="auth-title">Login</h2>
     
     <div id="name-field">
-        <input type="text" id="full-name" placeholder="Apna Poora Naam Likhein">
+        <input type="text" id="full-name" placeholder="Name">
     </div>
 
-    <input type="email" id="email" placeholder="Apna Email Likhein" required>
-    <input type="password" id="password" placeholder="Password Likhein" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
     
     <button id="auth-btn" onclick="handleAuth()">Login</button>
     
     <div id="message"></div>
     
-    <span class="toggle-link" id="toggle-link" onclick="toggleAuth()">Naya account banana hai? Signup karein</span>
+    <span class="toggle-link" id="toggle-link" onclick="toggleAuth()">Register new account</span>
 </div>
 
 <script>
@@ -56,14 +56,14 @@
         const toggleLink = document.getElementById('toggle-link');
 
         if (isLoginMode) {
-            authTitle.innerText = 'Login Karein';
+            authTitle.innerText = 'Login';
             authBtn.innerText = 'Login';
-            toggleLink.innerText = 'Naya account banana hai? Signup karein';
+            toggleLink.innerText = 'Register new account';
             nameField.style.display = 'none';
         } else {
-            authTitle.innerText = 'Naya Account Banayein';
+            authTitle.innerText = 'Register new account';
             authBtn.innerText = 'Signup';
-            toggleLink.innerText = 'Pehle se account hai? Login karein';
+            toggleLink.innerText = 'Already registered, Login now';
             nameField.style.display = 'block';
         }
         document.getElementById('message').innerText = '';
@@ -76,7 +76,7 @@
         const msg = document.getElementById('message');
 
         if (!email || !password) {
-            msg.innerText = "Email aur Password dono bhariye!";
+            msg.innerText = "Fill email and password both";
             msg.style.color = "red";
             return;
         }
@@ -90,7 +90,7 @@
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 
-                msg.innerText = "Login Safal! Redirecting...";
+                msg.innerText = "Login successful...";
                 msg.style.color = "green";
                 
                 setTimeout(() => { window.location.href = 'home.html'; }, 1000);
@@ -98,7 +98,7 @@
             } else {
                 // SIGNUP PROCESS
                 if (!fullName) {
-                    msg.innerText = "Kripya apna naam bhi likhein!";
+                    msg.innerText = "Name";
                     msg.style.color = "red";
                     return;
                 }
@@ -115,7 +115,7 @@
                 
                 if (error) throw error;
                 
-                msg.innerText = "Account ban gaya! Ab login karein.";
+                msg.innerText = "Account created,";
                 msg.style.color = "green";
                 setTimeout(toggleAuth, 2000);
             }
