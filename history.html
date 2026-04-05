@@ -8,45 +8,11 @@
     <style>
         body { font-family: sans-serif; background-color: #121212; color: white; margin: 0; padding: 15px; }
         .header { background: #5d331d; color: white; padding: 15px; text-align: center; margin: -15px -15px 20px -15px; }
-        
-        /* Date Heading Style */
-        .date-divider { 
-            background: #333; 
-            color: #ffab7d; 
-            padding: 8px 15px; 
-            margin: 20px 0 10px 0; 
-            border-radius: 5px; 
-            font-size: 14px; 
-            font-weight: bold;
-            text-align: left;
-            border-left: 4px solid #ffab7d;
-        }
-
-        .order-card { 
-            background: #1e1e1e; 
-            border-radius: 10px; 
-            padding: 12px; 
-            margin-bottom: 12px; 
-            border-left: 6px solid #5d331d; 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-        }
-
-        .order-img { 
-            width: 70px; 
-            height: 70px; 
-            border-radius: 8px; 
-            object-fit: cover; 
-            background: #2a2a2a;
-        }
-
-        .order-info { flex: 1; text-align: left; }
+        .order-card { background: #1e1e1e; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 6px solid #5d331d; text-align: left; }
         .customer { font-weight: bold; color: #ffab7d; font-size: 1.1em; }
-        .items { margin: 5px 0; font-size: 14px; color: #ccc; }
-        .time { font-size: 11px; color: #777; }
-        
-        #order-list { margin-top: 10px; }
+        .items { margin: 10px 0; font-size: 14px; color: #ccc; }
+        .date { font-size: 11px; color: #777; }
+        #order-list { text-align: center; margin-top: 20px; }
         .btn-home { margin-top: 10px; cursor: pointer; background: white; color: #5d331d; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
@@ -57,7 +23,7 @@
         <button class="btn-home" onclick="window.location.href='home.html'">Home Par Jayein</button>
     </div>
 
-    <h3 style="text-align:center;">Your Bookings</h3>
+    <h3 style="text-align:center;">Your Orders</h3>
     <div id="order-list">Please wait...</div>
 
     <script>
@@ -75,6 +41,7 @@
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             try {
+                // User check karne ka sabse fast tareeka
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (!user) {
@@ -82,61 +49,35 @@
                     return;
                 }
 
-                // Data fetch karna (Naye orders sabse upar)
+                // Data fetch karna
                 const { data, error } = await supabase
                     .from('orders')
                     .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false });
+                    .eq('user_id', user.id);
 
                 if (error) throw error;
 
                 if (data.length === 0) {
-                    list.innerHTML = "<p style='text-align:center;'>No Orders Found.</p>";
+                    list.innerHTML = "No Orders.";
                     return;
                 }
 
-                let finalHtml = '';
-                let lastDate = '';
-
-                data.forEach(o => {
-                    // Date Format karna
-                    const dateObj = new Date(o.created_at);
-                    const dateString = dateObj.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-                    const timeString = dateObj.toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' });
-
-                    // Agar Date change hui toh heading daalo
-                    if (dateString !== lastDate) {
-                        finalHtml += `<div class="date-divider">📅 ${dateString}</div>`;
-                        lastDate = dateString;
-                    }
-
-                    // Product Image (Agar db mein link nahi hai toh placeholder dikhayega)
-                    const imgTag = o.image_url 
-                        ? `<img src="${o.image_url}" class="order-img" alt="Product">`
-                        : `<div class="order-img" style="display:flex;align-items:center;justify-content:center;font-size:10px;background:#333;">No Image</div>`;
-
-                    finalHtml += `
-                        <div class="order-card">
-                            ${imgTag}
-                            <div class="order-info">
-                                <div class="customer">Customer: ${o.customer_name}</div>
-                                <div class="items">Item: ${o.items}</div>
-                                <div class="time">Order Time: ${timeString}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                list.innerHTML = finalHtml;
+                list.innerHTML = data.map(o => `
+                    <div class="order-card">
+                        <div class="customer">Customer: ${o.customer_name}</div>
+                        <div class="items">Items: ${o.items}</div>
+                        <div class="date">${new Date(o.created_at).toLocaleString()}</div>
+                    </div>
+                `).join('');
 
             } catch (err) {
                 list.innerHTML = "Galti: " + err.message;
             }
         }
 
+        // Isko execute karne ke liye delay
         window.onload = () => {
-            setTimeout(fetchOrders, 1000);
+            setTimeout(fetchOrders, 1500);
         };
     </script>
 </body>
