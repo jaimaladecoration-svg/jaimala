@@ -5,7 +5,8 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // --- GOOGLE SHEET SYNC FUNCTION ---
 async function syncToGoogleSheet(orderData) {
     // YAHA APNA NAYA VERSION 6 WALA URL DALO
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaYG4ZogZfn_-38l4HBKQNcQyfc68Q_jzmCbdZEXFDb-vHJPAspP-5RquK4DdwfXLo/exec';
+    // GitHub mein app.js mein ye wala URL dalo
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7IuzRgMjnU7-HmJTHnD8uolneSnZai44_RjlhQvcWJ5wYNXfQUfvo5fmhnQmU20Bn/exec';
 
     try {
         await fetch(GOOGLE_SCRIPT_URL, {
