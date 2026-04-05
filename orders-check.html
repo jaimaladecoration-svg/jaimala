@@ -6,99 +6,84 @@
     <title>Jaimala Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f0f2f5; }
-        .container { max-width: 950px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: #1a73e8; margin-top: 0; }
-        .refresh-btn { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin-bottom: 15px; font-weight: bold; }
-        .refresh-btn:hover { background: #1557b0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #1a73e8; color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        tr:hover { background: #f8f9fa; }
-        .price-tag { color: #2e7d32; font-weight: bold; }
-        .error-msg { background: #fff1f0; border: 1px solid #ffa39e; padding: 10px; border-radius: 5px; color: #cf1322; margin-bottom: 15px; display: none; }
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #1a73e8; color: white; }
+        #debug-msg { background: #fff3cd; padding: 10px; margin-bottom: 10px; border: 1px solid #ffeeba; display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Prince's Order Dashboard 📋</h2>
-    <div id="error-display" class="error-msg"></div>
-    <button class="refresh-btn" onclick="getOrders()">🔄 Refresh Orders</button>
-    <p id="counter" style="font-weight: bold;">Status: Fetching...</p>
+    <div id="debug-msg">Status: Checking System...</div>
+    <button onclick="getOrders()" style="width:100%; padding:10px; cursor:pointer;">🔄 Force Refresh</button>
 
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date & Time</th>
-                    <th>Customer Name</th>
-                    <th>Items Ordered</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
-    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
 </div>
 
 <script>
-    // PRINCE: Maine ye details aapke screenshot se double check ki hain
     const S_URL = 'https://groivrufuhcnhbygghog.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
     
-    const supabase = window.supabase.createClient(S_URL, S_KEY);
+    let supabase;
 
-    async function getOrders() {
-        const body = document.getElementById('table-body');
-        const count = document.getElementById('counter');
-        const errDiv = document.getElementById('error-display');
-        
-        errDiv.style.display = 'none';
-        body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading orders...</td></tr>';
-
+    function initSupabase() {
         try {
-            const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
-            count.innerText = `Total Orders: ${data.length}`;
-            body.innerHTML = '';
-
-            if (data.length === 0) {
-                body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Abhi tak koi order nahi aaya.</td></tr>';
-                return;
+            if (typeof supabase === 'undefined') {
+                supabase = window.supabase.createClient(S_URL, S_KEY);
+                document.getElementById('debug-msg').innerText = "System Ready. Fetching orders...";
+                getOrders();
             }
-
-            data.forEach(order => {
-                const dateObj = new Date(order.created_at);
-                const formattedDate = dateObj.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-                
-                body.innerHTML += `
-                    <tr>
-                        <td>${formattedDate}</td>
-                        <td><b>${order.customer_name}</b></td>
-                        <td>${order.items}</td>
-                        <td class="price-tag">₹${order.total_price}</td>
-                    </tr>
-                `;
-            });
-
-        } catch (err) {
-            console.error(err);
-            errDiv.style.display = 'block';
-            errDiv.innerText = "Error: " + err.message;
-            count.innerText = "Status: Failed to load.";
+        } catch (e) {
+            document.getElementById('debug-msg').innerText = "Critical Error: Supabase failed to load. Check Internet.";
         }
     }
 
-    // Auto-run on page load
-    getOrders();
-</script>
+    async function getOrders() {
+        const body = document.getElementById('table-body');
+        const debug = document.getElementById('debug-msg');
+        
+        try {
+            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
 
+            if (error) {
+                debug.innerText = "Supabase Error: " + error.message;
+                return;
+            }
+
+            debug.innerText = "Successfully Loaded " + data.length + " Orders.";
+            body.innerHTML = '';
+
+            data.forEach(order => {
+                body.innerHTML += `
+                    <tr>
+                        <td>${new Date(order.created_at).toLocaleString('en-IN')}</td>
+                        <td>${order.customer_name}</td>
+                        <td>${order.items}</td>
+                        <td>₹${order.total_price}</td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            debug.innerText = "Error: " + e.message;
+        }
+    }
+
+    // Page load hone par init karo
+    window.onload = initSupabase;
+</script>
 </body>
 </html>
