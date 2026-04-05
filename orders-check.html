@@ -3,94 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jaimala Decoration - Admin</title>
+    <title>Jaimala Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #1a73e8; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #1a73e8; color: white; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #ddd; }
-        .error-box { background: #fee; color: #c00; padding: 10px; border-radius: 5px; margin-bottom: 10px; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { text-align: center; color: #1a73e8; margin-top: 0; }
+        .refresh-btn { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin-bottom: 15px; font-weight: bold; }
+        .refresh-btn:hover { background: #1557b0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #1a73e8; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        tr:hover { background: #f8f9fa; }
+        .price-tag { color: #2e7d32; font-weight: bold; }
+        .error-msg { background: #fff1f0; border: 1px solid #ffa39e; padding: 10px; border-radius: 5px; color: #cf1322; margin-bottom: 15px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Prince's Order Dashboard 📋</h2>
-    <div id="debug-error" class="error-box"></div>
-    <button onclick="fetchOrders()" style="width:100%; padding:10px; background:#1a73e8; color:white; border:none; border-radius:5px; cursor:pointer;">🔄 Refresh Orders</button>
-    
-    <p id="order-count" style="font-weight:bold; margin-top:10px;">Total Orders: Loading...</p>
+    <div id="error-display" class="error-msg"></div>
+    <button class="refresh-btn" onclick="getOrders()">🔄 Refresh Orders</button>
+    <p id="counter" style="font-weight: bold;">Status: Fetching...</p>
 
     <div style="overflow-x: auto;">
         <table>
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Items</th>
+                    <th>Date & Time</th>
+                    <th>Customer Name</th>
+                    <th>Items Ordered</th>
                     <th>Price</th>
                 </tr>
             </thead>
-            <tbody id="order-list"></tbody>
+            <tbody id="table-body">
+                </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // PRINCE: EK BAAR YE DONO DETAILS DOBARA CHECK KARO
-    const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
+    // PRINCE: Maine ye details aapke screenshot se double check ki hain
+    const S_URL = 'https://groivrufuhcnhbygghog.supabase.co';
+    const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(S_URL, S_KEY);
 
-    async function fetchOrders() {
-        const list = document.getElementById('order-list');
-        const debug = document.getElementById('debug-error');
-        list.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
-        debug.style.display = 'none';
+    async function getOrders() {
+        const body = document.getElementById('table-body');
+        const count = document.getElementById('counter');
+        const errDiv = document.getElementById('error-display');
+        
+        errDiv.style.display = 'none';
+        body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading orders...</td></tr>';
 
         try {
-            // Screenshot ke hisaab se table ka naam 'orders' hi hai
             const { data, error } = await supabase
-                .from('orders') 
+                .from('orders')
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) {
-                debug.innerHTML = "<b>Supabase Error:</b> " + error.message;
-                debug.style.display = 'block';
-                return;
-            }
+            if (error) throw error;
 
-            document.getElementById('order-count').innerText = `Total Orders: ${data.length}`;
-            list.innerHTML = '';
+            count.innerText = `Total Orders: ${data.length}`;
+            body.innerHTML = '';
 
             if (data.length === 0) {
-                list.innerHTML = '<tr><td colspan="4">Koi order nahi mila. Table khali hai.</td></tr>';
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Abhi tak koi order nahi aaya.</td></tr>';
                 return;
             }
 
             data.forEach(order => {
-                const date = new Date(order.created_at).toLocaleString('en-IN');
-                list.innerHTML += `
+                const dateObj = new Date(order.created_at);
+                const formattedDate = dateObj.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                
+                body.innerHTML += `
                     <tr>
-                        <td>${date}</td>
-                        <td><b>${order.customer_name || 'No Name'}</b></td>
-                        <td>${order.items || 'No Items'}</td>
-                        <td style="color:green; font-weight:bold;">₹${order.total_price || 0}</td>
+                        <td>${formattedDate}</td>
+                        <td><b>${order.customer_name}</b></td>
+                        <td>${order.items}</td>
+                        <td class="price-tag">₹${order.total_price}</td>
                     </tr>
                 `;
             });
+
         } catch (err) {
-            debug.innerHTML = "<b>Connection Error:</b> " + err.message;
-            debug.style.display = 'block';
+            console.error(err);
+            errDiv.style.display = 'block';
+            errDiv.innerText = "Error: " + err.message;
+            count.innerText = "Status: Failed to load.";
         }
     }
 
-    fetchOrders();
+    // Auto-run on page load
+    getOrders();
 </script>
+
 </body>
 </html>
