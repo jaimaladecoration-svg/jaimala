@@ -1,22 +1,21 @@
-// --- CONFIGURATION ---
+// --- CONFIG ---
 const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7IuzRgMjnU7-HmJTHnD8uolneSnZai44_RjlhQvcWJ5wYNXfQUfvo5fmhnQmU20Bn/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw1kUNHHjgDVp2IbTAiRMVg3Z8tRIE-34K73fC2Ed9jtsI5ljSGIwl1nOyylWfFDC94/exec';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// --- GOOGLE SHEET SYNC FUNCTION ---
+// --- SYNC TO SHEET FUNCTION ---
 async function syncToGoogleSheet(orderData) {
-    console.log("Sending to Sheet...");
+    console.log("Sending to Google Sheet...");
     try {
-        // Yaha humne 'no-cors' hata diya hai aur plain text bhej rahe hain jo Google accept karta hai
         await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'cors', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            mode: 'no-cors', // Google Script ke liye mandatory hai
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(orderData)
         });
-        console.log("Sheet Sync Done");
+        console.log("Sheet Sync Success!");
     } catch (e) {
         console.error("Sheet Error:", e);
     }
@@ -30,16 +29,16 @@ document.getElementById('checkout-form').onsubmit = async (e) => {
     const itemsList = cart.map(i => i.name).join(', ');
     const firstProductImg = cart.length > 0 ? cart[0].img : '';
 
-    alert("Booking process ho rahi hai, please wait...");
+    alert("Booking processing... Please wait!");
 
-    // 1. Google Sheet mein bhejlo
+    // 1. Google Sheet Update
     await syncToGoogleSheet({
         customer_name: customerName,
         items: itemsList,
         image_url: firstProductImg
     });
 
-    // 2. Supabase mein save karo
+    // 2. Supabase Update
     try {
         await supabaseClient.from('orders').insert([{ 
             customer_name: customerName, 
@@ -50,9 +49,9 @@ document.getElementById('checkout-form').onsubmit = async (e) => {
         console.error("Supabase Error:", err);
     }
 
-    alert('Booking Successful! Aapka order Sheet mein save ho gaya hai.');
+    alert('Booking Successful! Sheet aur Supabase check karein.');
     
-    // Cart saaf karo aur modal band karo
+    // Cart clear
     cart = [];
     if(typeof updateCartUI === 'function') updateCartUI();
     document.getElementById('cart-modal').style.display = 'none';
