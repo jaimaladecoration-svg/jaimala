@@ -13,12 +13,12 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fffcf5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .auth-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; border-top: 5px solid #5d331d; }
         h2 { color: #5d331d; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #5d331d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #5d331d; }
+        button { width: 100%; padding: 12px; background-color: #5d331d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         button:hover { background-color: #452615; }
         .toggle-link { margin-top: 15px; color: #5d331d; cursor: pointer; text-decoration: underline; font-size: 14px; display: block; }
         #message { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; }
-        /* Name field shuru mein hidden rahega */
         #name-field { display: none; }
     </style>
 </head>
@@ -28,47 +28,51 @@
     <h2 id="auth-title">Login</h2>
     
     <div id="name-field">
-        <input type="text" id="full-name" placeholder="Name">
+        <input type="text" id="full-name" placeholder="Pura Naam">
     </div>
 
-    <input type="email" id="email" placeholder="Email" required>
+    <input type="email" id="email" placeholder="Email Id" required>
     <input type="password" id="password" placeholder="Password" required>
     
     <button id="auth-btn" onclick="handleAuth()">Login</button>
     
     <div id="message"></div>
     
-    <span class="toggle-link" id="toggle-link" onclick="toggleAuth()">Register new account</span>
+    <span class="toggle-link" id="toggle-link" onclick="toggleAuth()">Naya Account Banayein</span>
 </div>
 
 <script>
+    // Supabase Configuration
     const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let isLoginMode = true;
 
+    // Toggle between Login and Signup
     function toggleAuth() {
         isLoginMode = !isLoginMode;
         const nameField = document.getElementById('name-field');
         const authTitle = document.getElementById('auth-title');
         const authBtn = document.getElementById('auth-btn');
         const toggleLink = document.getElementById('toggle-link');
+        const msg = document.getElementById('message');
 
+        msg.innerText = '';
         if (isLoginMode) {
             authTitle.innerText = 'Login';
             authBtn.innerText = 'Login';
-            toggleLink.innerText = 'Register new account';
+            toggleLink.innerText = 'Naya Account Banayein';
             nameField.style.display = 'none';
         } else {
-            authTitle.innerText = 'Register new account';
+            authTitle.innerText = 'Naya Account';
             authBtn.innerText = 'Signup';
-            toggleLink.innerText = 'Already registered, Login now';
+            toggleLink.innerText = 'Pehle se account hai? Login karein';
             nameField.style.display = 'block';
         }
-        document.getElementById('message').innerText = '';
     }
 
+    // Main Auth Handler
     async function handleAuth() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -76,29 +80,28 @@
         const msg = document.getElementById('message');
 
         if (!email || !password) {
-            msg.innerText = "Fill email and password both";
+            msg.innerText = "Email aur Password dono bharein!";
             msg.style.color = "red";
             return;
         }
 
-        msg.innerText = "Loading...";
+        msg.innerText = "Sabar karein...";
         msg.style.color = "#5d331d";
 
         try {
             if (isLoginMode) {
-                // LOGIN PROCESS
+                // --- LOGIN ---
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 
-                msg.innerText = "Login successful...";
+                msg.innerText = "Login kamyab! Aage badh rahe hain...";
                 msg.style.color = "green";
-                
                 setTimeout(() => { window.location.href = 'home.html'; }, 1000);
 
             } else {
-                // SIGNUP PROCESS
+                // --- SIGNUP ---
                 if (!fullName) {
-                    msg.innerText = "Name";
+                    msg.innerText = "Kripya apna naam likhein!";
                     msg.style.color = "red";
                     return;
                 }
@@ -107,15 +110,13 @@
                     email: email,
                     password: password,
                     options: {
-                        data: {
-                            display_name: fullName // Yahan naam save ho raha hai
-                        }
+                        data: { display_name: fullName }
                     }
                 });
                 
                 if (error) throw error;
                 
-                msg.innerText = "Account created,";
+                msg.innerText = "Account ban gaya! Ab Login karein.";
                 msg.style.color = "green";
                 setTimeout(toggleAuth, 2000);
             }
@@ -125,11 +126,16 @@
         }
     }
 
+    // Check if user is already logged in
     async function checkUser() {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        if (user) { window.location.href = 'home.html'; }
+        if (user) { 
+            window.location.href = 'home.html'; 
+        }
     }
-    checkUser();
+    
+    // Page load par check karein
+    window.onload = checkUser;
 </script>
 
 </body>
