@@ -8,7 +8,7 @@ let cart = [];
 
 // --- GOOGLE SHEET SYNC FUNCTION ---
 async function syncToGoogleSheet(orderData) {
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaYG4ZogZfn_-38l4HBKQNcQyfc68Q_jzmCbdZEXFDb-vHJPAspP-5RquK4DdwfXLo/exec';
+    const GOOGLE_SCRIPT_URL = https://script.google.com/macros/s/AKfycbzvZRFnwfD517mp89eNQwElY_iR0vMrXLuOzmWRmcnc0-g3Rmj-sbcjWvMMsyoFPrjG/exec;
 
     try {
         await fetch(GOOGLE_SCRIPT_URL, {
