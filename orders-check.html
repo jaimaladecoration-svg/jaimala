@@ -2,71 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - All Orders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jaimala Decoration - Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background: #333; color: white; }
-        tr:nth-child(even) { background: #f9f9f9; }
-        .btn-refresh { padding: 10px 20px; background: green; color: white; border: none; cursor: pointer; margin-bottom: 10px; border-radius: 5px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f0f2f5; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
+        .stats { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { background: #1a73e8; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background-color: #f1f7ff; }
+        .booking-id { font-family: monospace; background: #e8f0fe; padding: 2px 6px; border-radius: 4px; color: #1967d2; }
+        .price { font-weight: bold; color: #2e7d32; }
+        .btn-refresh { display: block; width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-refresh:hover { background: #1557b0; }
+        @media (max-width: 600px) { table { font-size: 12px; } .container { padding: 10px; } th, td { padding: 8px; } }
     </style>
 </head>
 <body>
-    <h2>Prince's Order Dashboard</h2>
-    <button class="btn-refresh" onclick="fetchOrders()">🔄 Refresh Orders</button>
+
+<div class="container">
+    <h2>Prince's Order Dashboard 📋</h2>
+    <button class="btn-refresh" onclick="fetchOrders()">🔄 Check New Orders</button>
     
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Customer Name</th>
-                <th>Phone</th>
-                <th>Items</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody id="order-table-body">
-            </tbody>
-    </table>
+    <div class="stats">
+        <span id="total-orders">Total Orders: 0</span>
+    </div>
 
-    <script>
-        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Booking ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody id="order-list">
+                </tbody>
+        </table>
+    </div>
+</div>
 
-        async function fetchOrders() {
-            const tbody = document.getElementById('order-table-body');
-            tbody.innerHTML = '<tr><td colspan="5">Loading orders...</td></tr>';
+<script>
+    const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            const { data, error } = await supabase
-                .from('customer_orders')
-                .select('*')
-                .order('created_at', { ascending: false }); // Naya order sabse upar
+    async function fetchOrders() {
+        const orderList = document.getElementById('order-list');
+        orderList.innerHTML = '<tr><td colspan="5" style="text-align:center;">Fetching Orders...</td></tr>';
 
-            if (error) {
-                alert("Error: " + error.message);
-                return;
-            }
+        const { data, error } = await supabase
+            .from('orders') // Screenshots mein table ka naam 'orders' hai
+            .select('*')
+            .order('created_at', { ascending: false });
 
-            tbody.innerHTML = '';
-            data.forEach(order => {
-                const date = new Date(order.created_at).toLocaleString();
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${date}</td>
-                        <td>${order.customer_name}</td>
-                        <td>${order.phone}</td>
-                        <td>${order.items}</td>
-                        <td>₹${order.total_price}</td>
-                    </tr>
-                `;
-            });
+        if (error) {
+            console.error(error);
+            alert("Data nahi aa raha!");
+            return;
         }
 
-        // Page khulte hi orders dikhao
-        fetchOrders();
-    </script>
+        document.getElementById('total-orders').innerText = `Total Orders: ${data.length}`;
+        orderList.innerHTML = '';
+
+        data.forEach(order => {
+            const date = new Date(order.created_at).toLocaleDateString('en-IN', {
+                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+
+            orderList.innerHTML += `
+                <tr>
+                    <td>${date}</td>
+                    <td><span class="booking-id">${order.booking_id || 'N/A'}</span></td>
+                    <td><b>${order.customer_name}</b></td>
+                    <td>${order.items}</td>
+                    <td class="price">₹${order.total_price}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // Load on start
+    fetchOrders();
+</script>
+
 </body>
 </html>
