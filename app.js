@@ -6,6 +6,23 @@ const productGrid = document.getElementById('product-grid');
 const cartCount = document.getElementById('cart-count');
 let cart = [];
 
+// --- GOOGLE SHEET SYNC FUNCTION ---
+async function syncToGoogleSheet(orderData) {
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaYG4ZogZfn_-38l4HBKQNcQyfc68Q_jzmCbdZEXFDb-vHJPAspP-5RquK4DdwfXLo/exec';
+
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+        console.log("Google Sheet Updated!");
+    } catch (error) {
+        console.error("Sheet Sync Error:", error);
+    }
+}
+
 // Category Section Toggle
 function showCategories() {
     document.getElementById('category-section').style.display = 'block';
@@ -27,7 +44,7 @@ async function filterByCategory(categoryName) {
     const { data, error } = await supabaseClient
         .from('products')
         .select('*')
-        .eq('category', categoryName); // Admin panel se 'category' match honi chahiye
+        .eq('category', categoryName);
 
     if (error) {
         console.error('Error:', error);
@@ -47,19 +64,20 @@ async function filterByCategory(categoryName) {
             <div class="product-info">
                 <h3>${product.name}</h3>
                 <p class="price">₹${product.price.toLocaleString()}</p>
-                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Add to cart</button>
+                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, '${product.name}', ${product.price}, '${product.media_url}')">Add to cart</button>
             </div>
         `;
         productGrid.appendChild(card);
     });
 }
 
-// Cart Logic (Same as your original)
-function addToCart(id, name, price) {
+// Cart Logic Updated to include Image
+function addToCart(id, name, price, img) {
     const existing = cart.find(item => item.id === id);
-    if (existing) { alert('Already in cart'); }
-    else {
-        cart.push({ id, name, price });
+    if (existing) { 
+        alert('Already in cart'); 
+    } else {
+        cart.push({ id, name, price, img }); // Image bhi save kar rahe hain
         alert(`'${name}' Added to cart`);
     }
     updateCartUI();
@@ -79,13 +97,52 @@ function updateCartUI() {
 
 // Modal Toggle
 const modal = document.getElementById('cart-modal');
-document.getElementById('open-cart-btn').onclick = () => { modal.style.display = 'block'; updateCartUI(); }
-document.querySelector('.close-button').onclick = () => { modal.style.display = 'none'; }
+const openBtn = document.getElementById('open-cart-btn');
+if(openBtn) openBtn.onclick = () => { modal.style.display = 'block'; updateCartUI(); }
 
-// Checkout Logic (Web3Forms)
+const closeBtn = document.querySelector('.close-button');
+if(closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; }
+
+// Checkout Logic Updated
 document.getElementById('checkout-form').onsubmit = async (e) => {
     e.preventDefault();
-    // ... Wahi logic jo tumne likha tha Web3Forms wala
-    alert('ऑर्डर सेंड हो गया!');
-    cart = []; updateCartUI(); modal.style.display = 'none';
+    
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        alert("Pehle login karein!");
+        return;
+    }
+
+    const customerName = e.target.name.value; // Form se naam uthaya
+    const itemsList = cart.map(i => i.name).join(', ');
+    const firstProductImg = cart.length > 0 ? cart[0].img : '';
+
+    try {
+        // 1. Supabase mein Save karo
+        const { error } = await supabaseClient
+            .from('orders')
+            .insert([{ 
+                user_id: user.id, 
+                customer_name: customerName, 
+                items: itemsList,
+                image_url: firstProductImg // Table mein image_url column hona chahiye
+            }]);
+
+        if (error) throw error;
+
+        // 2. Google Sheet mein bhejo
+        await syncToGoogleSheet({
+            customer_name: customerName,
+            items: itemsList,
+            image_url: firstProductImg
+        });
+
+        alert('Booking Successful! Owner ko detail bhej di gayi hai.');
+        cart = []; 
+        updateCartUI(); 
+        modal.style.display = 'none';
+
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
 };
