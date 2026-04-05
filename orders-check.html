@@ -1,79 +1,72 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gagan Jaimala - Order Record</title>
+    <title>Admin - All Orders</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 15px; }
-        .header { text-align: center; background: #d35400; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
-        .search-box { background: #2a2a2a; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; border: 1px solid #444; }
-        input[type="date"] { padding: 12px; font-size: 16px; border-radius: 5px; border: none; width: 80%; margin-bottom: 15px; }
-        button { background: #27ae60; color: white; border: none; padding: 12px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .order-card { background: #333; border: 1px solid #444; border-radius: 10px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
-        .order-card img { width: 90px; height: 90px; border-radius: 8px; object-fit: cover; background: #444; }
-        .info b { color: #ff9f43; }
-        .info p { margin: 5px 0; font-size: 14px; line-height: 1.4; }
-        .no-data { text-align: center; color: #888; margin-top: 30px; }
-        @media print { .search-box, button { display: none; } }
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #333; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .btn-refresh { padding: 10px 20px; background: green; color: white; border: none; cursor: pointer; margin-bottom: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
+    <h2>Prince's Order Dashboard</h2>
+    <button class="btn-refresh" onclick="fetchOrders()">🔄 Refresh Orders</button>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Customer Name</th>
+                <th>Phone</th>
+                <th>Items</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="order-table-body">
+            </tbody>
+    </table>
 
-<div class="header"><h1>Order Records</h1></div>
+    <script>
+        const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<div class="search-box">
-    <p>Tarikh chunein:</p>
-    <input type="date" id="target-date">
-    <button onclick="searchOrders()">Orders Dekhein</button>
-    <button style="background: #2980b9;" onclick="window.print()">Print Nikalein</button>
-</div>
+        async function fetchOrders() {
+            const tbody = document.getElementById('order-table-body');
+            tbody.innerHTML = '<tr><td colspan="5">Loading orders...</td></tr>';
 
-<div id="display-area">
-    <p class="no-data">Pehle tarikh select karke button dabayein.</p>
-</div>
+            const { data, error } = await supabase
+                .from('customer_orders')
+                .select('*')
+                .order('created_at', { ascending: false }); // Naya order sabse upar
 
-<script>
-    const SUPABASE_URL = 'https://groivrufuhcnhbygghog.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyb2l2cnVmdWhjbmhieWdnaG9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTA4NzEsImV4cCI6MjA4OTEyNjg3MX0.MpEkthbuaeojJS_mUwyh-RrnHTLQ5SNKnscysqMC7hw';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            if (error) {
+                alert("Error: " + error.message);
+                return;
+            }
 
-    async function searchOrders() {
-        const dateVal = document.getElementById('target-date').value;
-        if(!dateVal) { alert("Bhai, date toh select karo!"); return; }
-
-        const container = document.getElementById('display-area');
-        container.innerHTML = "<p class='no-data'>Checking...</p>";
-
-        const { data, error } = await supabase
-            .from('orders')
-            .select('*')
-            .gte('created_at', dateVal + 'T00:00:00Z')
-            .lte('created_at', dateVal + 'T23:59:59Z')
-            .order('created_at', { ascending: false });
-
-        if (data && data.length > 0) {
-            let html = "";
+            tbody.innerHTML = '';
             data.forEach(order => {
-                html += `
-                <div class="order-card">
-                    <img src="${order.image_url}" onerror="this.src='https://via.placeholder.com/90?text=No+Photo'">
-                    <div class="info">
-                        <p><b>Naam:</b> ${order.customer_name}</p>
-                        <p><b>Phone:</b> ${order.phone || 'N/A'}</p>
-                        <p><b>Address:</b> ${order.event_place || 'N/A'}</p>
-                        <p><b>Event Date:</b> ${order.event_date || 'N/A'}</p>
-                        <p><b>Samaan:</b> ${order.items}</p>
-                    </div>
-                </div>`;
+                const date = new Date(order.created_at).toLocaleString();
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${order.customer_name}</td>
+                        <td>${order.phone}</td>
+                        <td>${order.items}</td>
+                        <td>₹${order.total_price}</td>
+                    </tr>
+                `;
             });
-            container.innerHTML = html;
-        } else {
-            container.innerHTML = `<p class="no-data" style="color:#ff6b6b;">${dateVal} ko koi order nahi mila.</p>`;
         }
-    }
-</script>
 
+        // Page khulte hi orders dikhao
+        fetchOrders();
+    </script>
 </body>
 </html>
